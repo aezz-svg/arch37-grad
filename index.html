@@ -1,0 +1,3134 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title id="sitePageTitle">أرشيف البرمجة المعمارية | الدفعة 37 - جامعة صنعاء</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Cinzel:wght@600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style id="customDynamicStyles">
+    :root {
+      --bg-main: #07090c;
+      --bg-surface: #0f131a;
+      --bg-card: rgba(15, 19, 26, 0.94);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-gold: rgba(197, 160, 89, 0.4);
+      --gold: #c5a059;
+      --gold-light: #e5c382;
+      --gold-glow: rgba(197, 160, 89, 0.25);
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+      --whatsapp: #25d366;
+      --telegram: #0088cc;
+      --instagram: #e1306c;
+      --facebook: #1877f2;
+      --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+
+    html, body {
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
+      background-color: var(--bg-main);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    body {
+      background-image: 
+        radial-gradient(circle at 10% 10%, rgba(197, 160, 89, 0.05) 0%, transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(19, 30, 49, 0.4) 0%, transparent 55%),
+        linear-gradient(to right, rgba(255,255,255,0.012) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.012) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+    }
+
+    #gatekeeperScreen {
+      position: fixed; inset: 0; width: 100vw; height: 100vh;
+      background: rgba(7, 9, 12, 0.98); backdrop-filter: blur(25px);
+      z-index: 9999; display: flex; align-items: center; justify-content: center;
+      padding: 1rem; overflow-y: auto;
+    }
+
+    .auth-card {
+      background: var(--bg-surface); border: 1px solid var(--border-gold);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px var(--gold-glow);
+      border-radius: 16px; width: 100%; max-width: 490px; padding: 1.8rem 1.4rem;
+      max-height: 94vh; overflow-y: auto; margin: auto;
+    }
+
+    .auth-tabs { display: flex; gap: 0.4rem; border-bottom: 1px solid var(--border-subtle); margin-bottom: 1.2rem; }
+
+    .auth-tab-btn {
+      flex: 1; background: none; border: none; color: var(--text-muted);
+      padding: 0.6rem 0.3rem; cursor: pointer; font-weight: 700; font-size: 0.82rem;
+      border-bottom: 2px solid transparent; transition: var(--transition); text-align: center;
+    }
+    .auth-tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    header {
+      background: rgba(7, 9, 12, 0.92); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle); position: sticky;
+      top: 0; z-index: 100; padding: 0.8rem 1.2rem; display: flex;
+      justify-content: space-between; align-items: center; gap: 0.8rem;
+      flex-wrap: wrap; width: 100%;
+    }
+
+    .brand { display: flex; align-items: center; gap: 0.8rem; }
+    .brand-logo {
+      width: 42px; height: 42px; border: 1.5px solid var(--gold);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 1.2rem; background: rgba(197, 160, 89, 0.08);
+      box-shadow: 0 0 15px var(--gold-glow); flex-shrink: 0;
+    }
+    .brand-text h1 { font-size: 1rem; font-weight: 800; color: #fff; }
+    .brand-text span { font-size: 0.72rem; color: var(--gold); font-weight: 600; }
+
+    .header-actions { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+
+    .btn-top {
+      padding: 0.45rem 0.8rem; border-radius: 8px; font-size: 0.8rem;
+      font-weight: 700; cursor: pointer; display: inline-flex; align-items: center;
+      gap: 0.35rem; transition: var(--transition); border: 1px solid transparent; text-decoration: none;
+    }
+    .btn-gold { background: linear-gradient(135deg, var(--gold), #9c7b39); color: #07090c; }
+    .btn-gold:hover { box-shadow: 0 0 20px var(--gold-glow); }
+    .btn-outline { background: rgba(255, 255, 255, 0.04); border-color: var(--border-subtle); color: #fff; }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-admin { background: rgba(197, 160, 89, 0.1); border-color: var(--border-gold); color: var(--gold-light); }
+    .btn-admin:hover { background: var(--gold); color: #07090c; }
+
+    .user-welcome-bar {
+      max-width: 1240px; margin: 0.8rem auto 0; padding: 0.6rem 1rem;
+      background: linear-gradient(90deg, rgba(197, 160, 89, 0.12), rgba(15, 19, 26, 0.85));
+      border: 1px solid var(--border-gold); border-radius: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 0.6rem;
+    }
+    .user-welcome-info { display: flex; align-items: center; gap: 0.6rem; }
+    .user-avatar-badge {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(197, 160, 89, 0.2); border: 1.5px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold-light); font-size: 1rem; flex-shrink: 0;
+    }
+    .user-welcome-text h4 { font-size: 0.88rem; font-weight: 700; color: #fff; line-height: 1.3; }
+    .user-welcome-text span { font-size: 0.75rem; color: var(--gold-light); font-weight: 500; }
+
+    .hero { text-align: center; padding: 2rem 1rem 1.2rem; max-width: 920px; margin: 0 auto; width: 100%; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.9rem;
+      background: rgba(197, 160, 89, 0.08); border: 1px solid var(--border-gold);
+      color: var(--gold); border-radius: 50px; font-size: 0.78rem; font-weight: 600; margin-bottom: 0.8rem;
+    }
+    .hero h2 {
+      font-size: 1.8rem; font-weight: 800; line-height: 1.3; margin-bottom: 0.6rem;
+      background: linear-gradient(180deg, #ffffff 40%, #9ca3af 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero p { color: var(--text-muted); font-size: 0.92rem; padding: 0 0.5rem; }
+
+    .controls {
+      max-width: 1240px; margin: 1rem auto 2rem; padding: 0 1rem;
+      display: flex; gap: 0.8rem; justify-content: space-between; align-items: center; flex-wrap: wrap; width: 100%;
+    }
+    .search-box { flex: 1; min-width: 250px; position: relative; width: 100%; }
+    .search-box input {
+      width: 100%; background: var(--bg-surface); border: 1px solid var(--border-subtle);
+      padding: 0.75rem 2.6rem 0.75rem 1rem; border-radius: 10px; color: #fff; font-size: 0.9rem;
+      transition: var(--transition);
+    }
+    .search-box input:focus { outline: none; border-color: var(--gold); }
+    .search-box i { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+    .stats-info {
+      font-size: 0.82rem; color: var(--text-muted); background: var(--bg-surface);
+      border: 1px solid var(--border-subtle); padding: 0.6rem 1rem; border-radius: 8px; width: 100%; text-align: center;
+    }
+
+    @media (min-width: 768px) {
+      .stats-info { width: auto; }
+      .hero h2 { font-size: 2.4rem; }
+    }
+
+    .grid {
+      max-width: 1240px; margin: 0 auto 4rem; padding: 0 1rem;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; width: 100%;
+    }
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px;
+      backdrop-filter: blur(12px); display: flex; flex-direction: column; justify-content: space-between; padding: 1.2rem;
+    }
+    .card.has-approved { border-top: 3px solid var(--gold); }
+    .card.is-pending { border-top: 3px solid var(--warning); }
+    .card.is-draft-admin { border-top: 3px solid var(--info); }
+
+    .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+    .badge-id {
+      font-family: 'Cinzel', monospace; font-size: 0.82rem; font-weight: 700;
+      color: var(--gold-light); background: rgba(197, 160, 89, 0.1);
+      padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-gold);
+    }
+    .status-badge { font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600; }
+    .status-active { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .status-draft { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .status-waiting { background: rgba(255, 255, 255, 0.04); color: var(--text-muted); border: 1px solid var(--border-subtle); }
+
+    .student-name { font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 0.2rem; }
+    .student-sub { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+
+    .project-box {
+      background: rgba(0, 0, 0, 0.3); border: 1px dashed var(--border-subtle);
+      border-radius: 8px; padding: 0.8rem; margin-bottom: 1rem;
+    }
+    .project-box h4 { font-size: 0.95rem; font-weight: 700; color: var(--gold); margin-bottom: 0.3rem; }
+    .project-box p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+
+    .card-actions { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+    .btn-action-view {
+      flex: 1.2; background: linear-gradient(135deg, var(--gold), #9c7b39);
+      color: #07090c; font-weight: 700; border: none; padding: 0.55rem;
+      border-radius: 8px; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; gap: 0.35rem; font-size: 0.82rem; white-space: nowrap;
+    }
+    .btn-action-share {
+      background: rgba(197, 160, 89, 0.12); border: 1px solid var(--border-gold);
+      color: var(--gold-light); padding: 0.55rem 0.7rem; border-radius: 8px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      gap: 0.3rem; font-size: 0.8rem; font-weight: 600;
+    }
+    .btn-share-locked {
+      background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
+      color: var(--text-muted); padding: 0.55rem 0.6rem; border-radius: 8px;
+      font-size: 0.75rem; display: flex; align-items: center; gap: 0.3rem;
+    }
+
+    .contacts-row { display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; }
+    .btn-contact-icon {
+      width: 32px; height: 32px; border-radius: 8px; display: flex;
+      align-items: center; justify-content: center; text-decoration: none;
+      background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-subtle);
+      color: #fff; font-size: 0.85rem; transition: var(--transition);
+    }
+    .btn-contact-icon:hover { transform: translateY(-2px); border-color: var(--gold); }
+    .icon-whatsapp { color: var(--whatsapp); }
+    .icon-telegram { color: var(--telegram); }
+    .icon-facebook { color: var(--facebook); }
+    .icon-instagram { color: var(--instagram); }
+    .icon-phone { color: #f59e0b; }
+    .icon-email { color: #ec4899; }
+
+    .password-input-wrapper { position: relative; display: flex; align-items: center; width: 100%; }
+    .password-input-wrapper input { width: 100%; padding-left: 2.8rem !important; }
+    .btn-toggle-pwd {
+      position: absolute; left: 0.7rem; background: none; border: none;
+      color: var(--gold); cursor: pointer; font-size: 1.1rem; padding: 0.3rem;
+      display: flex; align-items: center; justify-content: center; z-index: 10;
+    }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(12px);
+      display: none; align-items: center; justify-content: center; z-index: 10000; padding: 1rem;
+      overflow-y: auto;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-card {
+      background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 14px;
+      width: 100%; max-width: 600px; padding: 1.5rem; max-height: 90vh; overflow-y: auto; margin: auto;
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.2rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.6rem;
+    }
+    .modal-header h3 { font-size: 1.15rem; color: #fff; }
+    .btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; }
+
+    .form-group { margin-bottom: 1rem; text-align: right; width: 100%; }
+    .form-group label { display: block; font-size: 0.82rem; margin-bottom: 0.35rem; color: var(--text-muted); }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-subtle);
+      border-radius: 8px; padding: 0.75rem 0.9rem; color: #fff; font-size: 0.88rem;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--gold); }
+
+    .upload-progress-box {
+      display: none; margin: 1rem 0; background: rgba(15, 19, 26, 0.95);
+      border: 1px solid var(--border-gold); border-radius: 8px; padding: 0.9rem;
+    }
+    .upload-progress-head { display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700; color: var(--gold-light); margin-bottom: 0.5rem; }
+    .upload-progress-track { width: 100%; height: 9px; background: rgba(255, 255, 255, 0.08); border-radius: 5px; overflow: hidden; }
+    .upload-progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--gold), #fde047); border-radius: 5px; transition: width 0.15s ease-out; }
+    .upload-progress-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem; display: flex; justify-content: space-between; }
+
+    .privacy-toggle-box { background: rgba(197, 160, 89, 0.05); border: 1px solid var(--border-gold); border-radius: 8px; padding: 0.8rem; margin-bottom: 1rem; }
+    .contact-item-row { display: flex; gap: 0.4rem; margin-bottom: 0.5rem; align-items: center; }
+    .contact-item-row select { flex: 1.3; }
+    .contact-item-row input { flex: 2; }
+    .btn-remove-contact {
+      background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);
+      color: var(--danger); width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .btn-add-contact {
+      background: rgba(197, 160, 89, 0.1); border: 1px dashed var(--border-gold);
+      color: var(--gold-light); padding: 0.45rem; border-radius: 8px; cursor: pointer;
+      font-size: 0.8rem; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+    }
+
+    .upload-zone { border: 2px dashed var(--border-gold); border-radius: 8px; padding: 1.1rem; text-align: center; background: rgba(197, 160, 89, 0.04); cursor: pointer; margin-bottom: 0.8rem; }
+    .upload-zone i { font-size: 1.8rem; color: var(--gold); margin-bottom: 0.4rem; }
+
+    .admin-tabs { display: flex; gap: 0.4rem; border-bottom: 1px solid var(--border-subtle); margin-bottom: 1.2rem; overflow-x: auto; padding-bottom: 0.4rem; align-items: center; }
+    .admin-tab-btn { background: none; border: none; color: var(--text-muted); padding: 0.5rem 0.7rem; cursor: pointer; font-weight: 700; font-size: 0.82rem; border-bottom: 2px solid transparent; white-space: nowrap; }
+    .admin-tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    .admin-table { width: 100%; border-collapse: collapse; margin-top: 0.8rem; font-size: 0.82rem; }
+    .admin-table th, .admin-table td { padding: 0.65rem 0.5rem; border-bottom: 1px solid var(--border-subtle); text-align: right; }
+    .admin-table th { color: var(--gold); font-weight: 700; }
+
+    .pin-pill { background: rgba(197, 160, 89, 0.15); color: var(--gold-light); padding: 0.2rem 0.45rem; border-radius: 4px; font-family: monospace; font-weight: 700; }
+    .token-badge { background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 0.2rem 0.45rem; border-radius: 4px; font-family: monospace; font-weight: 700; }
+    
+    .media-preview-container { width: 100%; min-height: 350px; border: 1px solid var(--border-subtle); border-radius: 8px; background: #111; margin-top: 0.8rem; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .pdf-viewer-frame { width: 100%; height: 500px; border: none; background: #111; }
+    .image-preview-frame { max-width: 100%; max-height: 520px; object-fit: contain; border-radius: 6px; }
+
+    .pending-banner { background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning); border-radius: 8px; padding: 0.7rem; margin-bottom: 0.8rem; font-size: 0.8rem; color: var(--warning); display: flex; align-items: center; gap: 0.5rem; }
+
+    .drive-link-badge { display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(197, 160, 89, 0.1); border: 1px solid var(--border-gold); color: var(--gold-light); padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.72rem; text-decoration: none; }
+    .drive-link-badge:hover { background: var(--gold); color: #07090c; }
+
+    .pulse-online {
+      display: inline-flex; align-items: center; gap: 0.35rem; color: var(--success);
+      font-weight: 700; font-size: 0.75rem; background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3); padding: 0.2rem 0.5rem; border-radius: 50px;
+    }
+    .pulse-dot {
+      width: 7px; height: 7px; background-color: var(--success); border-radius: 50%;
+      box-shadow: 0 0 8px var(--success); animation: pulseAnim 1.6s infinite ease-in-out;
+    }
+    @keyframes pulseAnim {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.4); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+    .offline-tag {
+      color: var(--text-muted); font-size: 0.72rem; background: rgba(255,255,255,0.04);
+      padding: 0.2rem 0.45rem; border-radius: 4px; display: inline-block;
+    }
+    .filter-btn-group { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+    .btn-filter-pill {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle);
+      color: var(--text-muted); padding: 0.3rem 0.75rem; border-radius: 50px;
+      font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: var(--transition);
+    }
+    .btn-filter-pill.active { background: var(--gold); color: #07090c; border-color: var(--gold); }
+
+    .code-editor-area {
+      width: 100%;
+      height: 380px;
+      background: #0d1117;
+      color: #7ee787;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.8rem;
+      border: 1px solid var(--border-gold);
+      border-radius: 8px;
+      padding: 0.8rem;
+      direction: ltr;
+      text-align: left;
+      white-space: pre;
+      overflow: auto;
+      tab-size: 2;
+    }
+
+    .wisdom-card {
+      background: linear-gradient(145deg, rgba(197, 160, 89, 0.15), rgba(15, 19, 26, 0.98));
+      border: 1px solid var(--border-gold);
+      border-radius: 14px;
+      padding: 1.4rem;
+      margin: 1.2rem 0;
+      position: relative;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6), 0 0 20px var(--gold-glow);
+    }
+    .wisdom-badge-type {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--gold);
+      background: rgba(197, 160, 89, 0.1);
+      border: 1px solid var(--border-gold);
+      padding: 0.2rem 0.6rem;
+      border-radius: 50px;
+      margin-bottom: 0.8rem;
+    }
+    .wisdom-text {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.8;
+      margin-bottom: 0.8rem;
+    }
+    .wisdom-author {
+      font-size: 0.82rem;
+      color: var(--gold-light);
+      font-weight: 700;
+      text-align: left;
+      direction: ltr;
+    }
+
+    .upload-notice-box {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--success);
+      border-radius: 8px;
+      padding: 0.7rem;
+      font-size: 0.8rem;
+      color: #a7f3d0;
+      margin-bottom: 0.8rem;
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    footer { border-top: 1px solid var(--border-subtle); text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.82rem; width: 100%; }
+  </style>
+</head>
+<body>
+
+  <!-- شاشة الدخول والتسجيل -->
+  <div id="gatekeeperScreen">
+    <div class="auth-card">
+      <div style="text-align: center; margin-bottom: 1.2rem;">
+        <div style="width: 50px; height: 50px; margin: 0 auto 0.6rem; border: 1.5px solid var(--gold); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 1.5rem; background: rgba(197, 160, 89, 0.08);">
+          <i class="fa-solid fa-shapes"></i>
+        </div>
+        <h2 style="font-size: 1.25rem; color:#fff; margin-bottom: 0.2rem;">أرشيف البرمجة المعمارية</h2>
+        <p style="color: var(--text-muted); font-size: 0.78rem;">الدفعة 37 — كلية الهندسة جامعة صنعاء</p>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthMode('login')">
+          <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
+        </button>
+        <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthMode('register')">
+          <i class="fa-solid fa-cloud-arrow-up"></i> رفع وتأكيد المشروع
+        </button>
+      </div>
+
+      <!-- تسجيل الدخول -->
+      <form id="gateLoginForm" onsubmit="handleGateLogin(event)">
+        <div class="form-group">
+          <label>الرقم الأكاديمي</label>
+          <input type="text" id="gateLoginId" required placeholder="مثال: 202370066">
+        </div>
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
+            <label style="margin-bottom:0;">كلمة السر (PIN)</label>
+            <div style="display:flex; gap:0.5rem;">
+              <a href="javascript:void(0)" onclick="openResetPasswordRequestModal()" style="font-size:0.75rem; color:var(--gold); text-decoration:none;">نسيت الرمز السري؟</a>
+              <span style="color:var(--border-subtle);">|</span>
+              <a href="javascript:void(0)" onclick="openCheckResetStatusModal()" style="font-size:0.75rem; color:#60a5fa; text-decoration:none;">التأكد من الطلب</a>
+            </div>
+          </div>
+          <div class="password-input-wrapper">
+            <input type="password" id="gateLoginPin" required placeholder="أدخل كلمة السر المسجلة لمشروعك">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('gateLoginPin')" title="إظهار / إخفاء الرمز">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" id="btnGateLoginSubmit" class="btn-top btn-gold" style="width: 100%; justify-content: center; padding: 0.75rem; margin-top: 0.8rem; font-size:0.9rem;">
+          دخول إلى الأرشيف
+        </button>
+
+        <div style="text-align: center; margin-top: 1.2rem; border-top: 1px solid var(--border-subtle); padding-top: 0.8rem;">
+          <a href="javascript:void(0)" onclick="openModal('adminLoginModal')" style="font-size: 0.8rem; color: var(--gold-light); text-decoration: none;">
+            <i class="fa-solid fa-shield-halved"></i> تسجيل دخول مدير المنصة مباشرة
+          </a>
+        </div>
+      </form>
+
+      <!-- نموذج رفع المشروع الجديد الخاص بالطالب -->
+      <form id="gateRegisterForm" style="display: none;" onsubmit="handleGateRegister(event)">
+        <div class="pending-banner">
+          <i class="fa-solid fa-circle-info text-gold"></i>
+          <span>قم برفع ملف البرمجة، وإذا تعذر ارفع صورة غلاف البرمجة. سيتم حفظ ملفك تلقائياً داخل مجلدك المخصص.</span>
+        </div>
+
+        <div id="gateAdminPreUploadedNotice" class="upload-notice-box">
+          <i class="fa-solid fa-circle-check" style="color: var(--success); font-size: 1.1rem;"></i>
+          <span>تم رفع البرمجة لمشروعك مسبقاً من قبل إدارة المنصة؛ الرجاء تعيين كلمة السر الخاصة بك وإرفاق صورة غلاف البرمجة لاستكمال التسجيل.</span>
+        </div>
+
+        <div class="form-group">
+          <label>الرقم الأكاديمي</label>
+          <input type="text" id="gateRegId" required placeholder="مثال: 202370066" oninput="verifyRosterStudent('gateReg')">
+          <small id="gateRegIdNotice" style="color: var(--gold); display: block; margin-top: 0.25rem; font-size:0.75rem;">أدخل رقمك الأكاديمي للتحقق الفوري</small>
+        </div>
+        <div class="form-group">
+          <label>اسم المهندس (تلقائي)</label>
+          <input type="text" id="gateRegName" readonly placeholder="سيظهر اسمك هنا تلقائياً">
+        </div>
+        <div class="form-group">
+          <label>تعيين كلمة سر جديدة خاصة بك لحماية وتعديل مشروعك (PIN)</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="gateRegPin" required placeholder="اختر كلمة سر خاصة بك واحفظها">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('gateRegPin')" title="إظهار / إخفاء الرمز">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>عنوان مشروع التخرج</label>
+          <input type="text" id="gateRegTitle" required placeholder="مثال: بوابة موكا | مركز اقتصادي متكامل">
+        </div>
+        <div class="form-group">
+          <label>موجز فكرة البرمجة والبرنامج الفراغي</label>
+          <textarea id="gateRegDesc" rows="2" placeholder="محددات المشروع والعلاقات الوظيفية..."></textarea>
+        </div>
+
+        <div class="privacy-toggle-box">
+          <label style="color: var(--gold-light); font-weight: 700; font-size: 0.82rem; display:block; margin-bottom:0.3rem;">
+            <i class="fa-solid fa-shield-halved"></i> سماحية مشاركة ونسخ رابط البرمجة:
+          </label>
+          <select id="gateRegAllowShare">
+            <option value="true">نعم، أسمح بنسخ ومشاركة رابط البرمجة لزملائي</option>
+            <option value="false">لا، أرغب بالمعاينة فقط دون نسخ الرابط</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>معرفات ووسائل التواصل (جميع الوسائل متاحة):</label>
+          <div id="gateContactsContainer"></div>
+          <button type="button" class="btn-add-contact" onclick="addContactRow('gateContactsContainer')">
+            <i class="fa-solid fa-plus"></i> إضافة وسيلة تواصل أخرى
+          </button>
+        </div>
+
+        <div class="form-group" id="gateMainPdfWrapper">
+          <label style="color: var(--gold-light); font-weight: 700;">
+            <i class="fa-solid fa-file-pdf"></i> رفع ملف البرمجة الكامل (PDF):
+          </label>
+          <div class="upload-zone" onclick="document.getElementById('gateFileInput').click()">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <div style="font-size: 0.82rem;">اضغط لرفع ملف البرمجة الخاص بك (PDF)</div>
+            <div id="gateSelectedFileText" style="font-size: 0.78rem; color: var(--success); margin-top: 0.3rem; font-weight: 700;"></div>
+          </div>
+          <input type="file" id="gateFileInput" accept=".pdf,application/pdf" style="display: none;" onchange="handleGateMainFile(event)">
+        </div>
+
+        <div class="form-group">
+          <label style="color: var(--gold-light); font-weight: 600;">
+            <i class="fa-regular fa-image"></i> رفع صورة غلاف البرمجة (صورة معمارية):
+          </label>
+          <div class="upload-zone" style="padding: 0.85rem;" onclick="document.getElementById('gateCoverInput').click()">
+            <i class="fa-regular fa-image" style="font-size: 1.3rem;"></i>
+            <div style="font-size: 0.78rem;">اضغط لاختيار صورة غلاف البرمجة (JPG, PNG, WEBP)</div>
+            <div id="gateSelectedCoverText" style="font-size: 0.75rem; color: var(--success); margin-top: 0.2rem; font-weight: 700;"></div>
+          </div>
+          <input type="file" id="gateCoverInput" accept="image/png,image/jpeg,image/webp,image/jpg" style="display: none;" onchange="handleGateCoverFile(event)">
+        </div>
+
+        <div id="gateProgressBox" class="upload-progress-box">
+          <div class="upload-progress-head">
+            <span id="gateProgressStatus"><i class="fa-solid fa-cloud-arrow-up"></i> جاري حفظ وترتيب المشروع في مجلد الطالب...</span>
+            <span id="gateProgressPercent" style="font-family: monospace; font-size: 0.95rem; color: #fde047;">0%</span>
+          </div>
+          <div class="upload-progress-track">
+            <div id="gateProgressBar" class="upload-progress-bar"></div>
+          </div>
+          <div class="upload-progress-sub">
+            <span id="gateProgressBytes">0 MB / 0 MB</span>
+            <span id="gateProgressTime">جاري التجهيز...</span>
+          </div>
+        </div>
+
+        <button type="submit" id="btnSubmitGateReg" class="btn-top btn-gold" style="width: 100%; justify-content: center; padding: 0.75rem; margin-top: 0.5rem;">
+          إرسال المشروع للمراجعة والاعتماد الفوري
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-drafting-compass"></i></div>
+      <div class="brand-text">
+        <h1 id="headerUnivTitle">جامعة صنعاء | كلية الهندسة</h1>
+        <span id="headerBatchTitle">قسم الهندسة المعمارية — الدفعة 37</span>
+      </div>
+    </div>
+    
+    <div class="header-actions">
+      <button class="btn-top btn-outline" onclick="openModal('feedbackModal')">
+        <i class="fa-regular fa-comment-dots"></i> اقتراح
+      </button>
+
+      <button class="btn-top btn-outline" onclick="openStudentEditModalDirect()">
+        <i class="fa-solid fa-pen"></i> استبدال الملف وتعديل البيانات
+      </button>
+
+      <button class="btn-top btn-admin" onclick="openModal('adminLoginModal')">
+        <i class="fa-solid fa-shield-halved"></i> المدير
+      </button>
+
+      <button class="btn-top btn-outline" onclick="logoutSite()" title="قفل الموقع وتسجيل الخروج">
+        <i class="fa-solid fa-power-off" style="color: var(--danger);"></i>
+      </button>
+    </div>
+  </header>
+
+  <div id="userWelcomeBar" class="user-welcome-bar" style="display: none;">
+    <div class="user-welcome-info">
+      <div class="user-avatar-badge">
+        <i class="fa-solid fa-user-graduate"></i>
+      </div>
+      <div class="user-welcome-text">
+        <h4 id="welcomeBarName">مرحباً بك يا باشمهندس: ...</h4>
+        <span id="welcomeBarId">الرقم الأكاديمي: ...</span>
+      </div>
+    </div>
+    <div class="user-welcome-actions">
+      <button onclick="triggerWisdomModal(false)" class="btn-top btn-outline" style="font-size:0.75rem; padding:0.35rem 0.65rem; color:var(--gold-light); border-color:var(--border-gold);" title="حكمة اليوم">
+        <i class="fa-solid fa-lightbulb"></i> حكمة اليوم
+      </button>
+      <button onclick="openStudentEditModalDirect()" class="btn-top btn-gold" style="font-size:0.75rem; padding:0.35rem 0.65rem;">
+        <i class="fa-solid fa-pen-to-square"></i> تعديل مشروعي
+      </button>
+      <button onclick="logoutSite()" class="btn-top btn-outline" style="font-size:0.75rem; padding:0.35rem 0.65rem; color:var(--danger); border-color:rgba(239,68,68,0.3);">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i> خروج
+      </button>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div class="hero-badge" id="heroBadgeText">
+      <i class="fa-solid fa-compass-drafting"></i> المستوى الخامس معماري (92 مهندساً)
+    </div>
+    <h2 id="heroMainTitle">أرشيف البرمجة المعمارية للدفعة 37</h2>
+    <p id="heroSubDesc">بوابة التوثيق والاستعراض الشامل لكافة مشاريع التخرج ودراسات البرنامج الفراغي والوظيفي، مرتبة تصاعدياً بحسب الرقم الأكاديمي ومحفوظة بمجلدات مخصصة.</p>
+  </section>
+
+  <section class="controls">
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="filterInput" placeholder="ابحث بالرقم الأكاديمي، اسم المهندس، أو عنوان المشروع..." oninput="handleSearch()">
+    </div>
+    <div class="stats-info" id="statsLabel">جاري الاتصال بالسحابة...</div>
+  </section>
+
+  <main class="grid" id="studentsGrid"></main>
+
+  <div class="modal-overlay" id="welcomeWisdomModal">
+    <div class="modal-card" style="max-width: 480px; text-align: center;">
+      <div id="welcomeIconBox" style="width: 58px; height: 58px; margin: 0 auto 0.8rem; border-radius: 50%; background: rgba(197, 160, 89, 0.15); border: 1.5px solid var(--gold); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 1.6rem;">
+        <i class="fa-solid fa-award"></i>
+      </div>
+      <h3 id="welcomeWisdomStudentTitle" style="color: #fff; font-size: 1.25rem; margin-bottom: 0.3rem;">مرحباً بك يا باشمهندس 📐</h3>
+      <p id="welcomeWisdomSubText" style="color: var(--gold-light); font-size: 0.84rem; font-weight: 600;">أهلاً بك في منصة مشاريع التخرج للدفعة 37</p>
+
+      <div class="wisdom-card">
+        <span class="wisdom-badge-type" id="wisdomBadgeType">💡 حكمة معمارية اليوم</span>
+        <div class="wisdom-text" id="wisdomContentDisplay">"العمارة هي الموسيقى المجسدة في الفراغ."</div>
+        <div class="wisdom-author" id="wisdomAuthorDisplay">— Frank Lloyd Wright</div>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem;">
+        <button onclick="displayRandomWisdom(true)" class="btn-top btn-outline" style="font-size: 0.8rem; padding: 0.5rem 0.9rem;">
+          <i class="fa-solid fa-shuffle"></i> حكمة أخرى
+        </button>
+        <button onclick="closeModal('welcomeWisdomModal')" class="btn-top btn-gold" style="font-size: 0.8rem; padding: 0.5rem 1.4rem;">
+          <i class="fa-solid fa-arrow-left"></i> مواصلة التصفح
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="resetReqModal">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-key text-gold"></i> طلب استعادة الرمز السري</h3>
+        <button class="btn-close" onclick="closeModal('resetReqModal')">&times;</button>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 0.8rem;">
+        أدخل رقمك الأكاديمي لإرسال طلب فوري للمدير مع رمز تتبع أمني:
+      </p>
+      <form onsubmit="handleSendResetRequest(event)">
+        <div class="form-group">
+          <label>الرقم الأكاديمي</label>
+          <input type="text" id="resetReqId" required placeholder="مثال: 202370066">
+        </div>
+        <div class="form-group">
+          <label>ملاحظة أو رقم التواصل للتحقق</label>
+          <input type="text" id="resetReqNote" placeholder="رقم هاتفك أو معرفك للتواصل">
+        </div>
+        <div class="form-group">
+          <label>رمز التتبع الأمني التلقائي (احفظه جيداً):</label>
+          <input type="text" id="resetAutoToken" readonly style="color:var(--gold-light); font-weight:700; letter-spacing:1px;">
+        </div>
+        <button type="submit" id="btnSubmitResetReq" class="btn-top btn-gold" style="width: 100%; justify-content: center; padding: 0.75rem;">
+          إرسال طلب الاستعادة للمدير
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="checkResetModal">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-circle-check text-gold"></i> التأكد من طلب استعادة الرمز</h3>
+        <button class="btn-close" onclick="closeModal('checkResetModal')">&times;</button>
+      </div>
+      <form onsubmit="handleCheckResetStatus(event)">
+        <div class="form-group">
+          <label>الرقم الأكاديمي</label>
+          <input type="text" id="checkIdInput" required placeholder="أدخل رقمك الأكاديمي">
+        </div>
+        <div class="form-group">
+          <label>رمز التتبع الأمني</label>
+          <input type="text" id="checkTokenInput" required placeholder="مثال: SEC-84920">
+        </div>
+        <button type="submit" class="btn-top btn-gold" style="width: 100%; justify-content: center; padding: 0.75rem;">
+          استعلام عن الرمز المعتمد
+        </button>
+      </form>
+      <div id="checkResultDisplay" style="margin-top:0.8rem; display:none; background:rgba(0,0,0,0.3); border:1px solid var(--border-gold); padding:0.8rem; border-radius:8px;"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="feedbackModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-lightbulb text-gold"></i> صندوق الآراء والاقتراحات</h3>
+        <button class="btn-close" onclick="closeModal('feedbackModal')">&times;</button>
+      </div>
+      <form id="feedbackForm" onsubmit="handleSendFeedback(event)">
+        <div class="form-group">
+          <label>اسم الطالب أو المعرّف (اختياري)</label>
+          <input type="text" id="feedbackSender" placeholder="اتركه فارغاً إذا أردت الإرسال كمجهول">
+        </div>
+        <div class="form-group">
+          <label>نص الرأي أو الاقتراح</label>
+          <textarea id="feedbackText" rows="3" required placeholder="اكتب ملاحظاتك لتطوير المنصة..."></textarea>
+        </div>
+        <button type="submit" class="btn-top btn-gold" style="width: 100%; justify-content: center; padding: 0.75rem;">
+          إرسال الاقتراح للمدير
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-pen-to-square text-gold"></i> تعديل بيانات المشروع واستبدال الملف</h3>
+        <button class="btn-close" onclick="closeModal('editModal')">&times;</button>
+      </div>
+      <form id="editForm" onsubmit="handleEditProject(event)">
+        <div class="form-group">
+          <label>الرقم الأكاديمي</label>
+          <input type="text" id="editId" required placeholder="أدخل رقمك الأكاديمي" oninput="verifyRosterStudent('edit')">
+          <small id="editIdNotice" style="color: var(--gold); display: block; margin-top: 0.25rem; font-size:0.75rem;"></small>
+        </div>
+        <div class="form-group">
+          <label>اسم الطالب (تلقائي)</label>
+          <input type="text" id="editName" readonly>
+        </div>
+        <div class="form-group">
+          <label>كلمة السر الخاصة بالمشروع (للتحقق)</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="editPin" required placeholder="أدخل كلمة السر المسجلة لمشروعك">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('editPin')" title="إظهار / إخفاء الرمز">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>تعديل عنوان المشروع</label>
+          <input type="text" id="editTitle" required>
+        </div>
+        <div class="form-group">
+          <label>تعديل نبذة البرمجة</label>
+          <textarea id="editDesc" rows="3"></textarea>
+        </div>
+
+        <div class="privacy-toggle-box">
+          <label style="color: var(--gold-light); font-weight: 700; font-size: 0.82rem; display:block; margin-bottom:0.3rem;">
+            <i class="fa-solid fa-shield-halved"></i> تعديل سماحية نسخ الرابط:
+          </label>
+          <select id="editAllowShare">
+            <option value="true">نعم، أسمح بنسخ ومشاركة رابط البرمجة</option>
+            <option value="false">لا، أرغب بالمعاينة فقط دون نسخ الرابط</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>تعديل وسائل التواصل (جميع الوسائل متاحة):</label>
+          <div id="editContactsContainer"></div>
+          <button type="button" class="btn-add-contact" onclick="addContactRow('editContactsContainer')">
+            <i class="fa-solid fa-plus"></i> إضافة وسيلة تواصل أخرى
+          </button>
+        </div>
+
+        <!-- خانة إضافة وتعديل الصورة الشخصية أو صورة الواجهة (اختياري) -->
+<div class="form-group">
+  <label style="color: var(--gold-light); font-weight: 600;">
+    <i class="fa-solid fa-image-portrait"></i> صورة الواجهة الشخصية (اختياري):
+  </label>
+  <div class="upload-zone" style="padding: 0.85rem;" onclick="document.getElementById('editAvatarInput').click()">
+    <i class="fa-regular fa-image" style="font-size: 1.3rem;"></i>
+    <div style="font-size: 0.78rem;">اضغط لاختيار صورتك الشخصية أو شعارك التعريفي (JPG, PNG)</div>
+    <div id="editAvatarNameDisplay" style="font-size: 0.75rem; color: var(--success); margin-top: 0.2rem; font-weight: 700;"></div>
+  </div>
+  <input type="file" id="editAvatarInput" accept="image/png,image/jpeg,image/webp,image/jpg" style="display: none;" onchange="handleEditAvatarFile(event)">
+</div>
+
+        <div class="form-group">
+          <label style="color: var(--gold-light); font-weight: 700;">
+            <i class="fa-solid fa-file-pdf"></i> استبدال ملف البرمجة (PDF):
+          </label>
+          <div class="upload-zone" onclick="document.getElementById('editFileInput').click()">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <div style="font-size: 0.82rem;">اضغط لاختيار ملف البرمجة الجديد (PDF)</div>
+            <div id="editFileNameDisplay" style="font-size: 0.78rem; color: var(--success); margin-top: 0.3rem; font-weight: 700;"></div>
+          </div>
+          <input type="file" id="editFileInput" accept=".pdf,application/pdf" style="display: none;" onchange="handleEditFile(event)">
+        </div>
+
+        <div class="form-group">
+          <label style="color: var(--gold-light); font-weight: 600;">
+            <i class="fa-regular fa-image"></i> استبدال صورة غلاف البرمجة:
+          </label>
+          <div class="upload-zone" style="padding: 0.85rem;" onclick="document.getElementById('editCoverInput').click()">
+            <i class="fa-regular fa-image" style="font-size: 1.3rem;"></i>
+            <div style="font-size: 0.78rem;">اضغط لاختيار صورة غلاف جديدة</div>
+            <div id="editCoverNameDisplay" style="font-size: 0.75rem; color: var(--success); margin-top: 0.2rem; font-weight: 700;"></div>
+          </div>
+          <input type="file" id="editCoverInput" accept="image/png,image/jpeg,image/webp,image/jpg" style="display: none;" onchange="handleEditCoverFile(event)">
+        </div>
+
+        <div id="editProgressBox" class="upload-progress-box">
+          <div class="upload-progress-head">
+            <span id="editProgressStatus"><i class="fa-solid fa-cloud-arrow-up"></i> جاري تحديث وحفظ بيانات المشروع داخل مجلدك...</span>
+            <span id="editProgressPercent" style="font-family: monospace; font-size: 0.95rem; color: #fde047;">0%</span>
+          </div>
+          <div class="upload-progress-track">
+            <div id="editProgressBar" class="upload-progress-bar"></div>
+          </div>
+          <div class="upload-progress-sub">
+            <span id="editProgressBytes">0 MB / 0 MB</span>
+            <span id="editProgressTime">جاري التجهيز...</span>
+          </div>
+        </div>
+
+        <button type="submit" id="btnSubmitEdit" class="btn-top btn-gold" style="width: 100%; justify-content: center; padding: 0.75rem;">
+          حفظ التعديلات وتحديث المجلد
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="adminDashboardModal">
+    <div class="modal-card" style="max-width: 1200px;">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          <h3 style="color: var(--gold); margin:0;"><i class="fa-solid fa-user-shield"></i> لوحة تحكم وتطوير المنصة للمدير</h3>
+          <button id="btnAdminGlobalRefresh" onclick="handleAdminManualSync()" class="btn-top btn-gold" style="font-size: 0.75rem; padding: 0.3rem 0.75rem;">
+            <i class="fa-solid fa-arrows-rotate" id="adminSyncIcon"></i> <span id="adminSyncText">تحديث فوري</span>
+          </button>
+        </div>
+        <button class="btn-close" onclick="closeModal('adminDashboardModal')">&times;</button>
+      </div>
+
+      <div class="admin-tabs">
+        <button class="admin-tab-btn active" onclick="switchAdminTab('approvalsTab', this)">
+          <i class="fa-solid fa-user-check"></i> طلبات التسجيل (<span id="approvalsBadge" style="color: var(--warning); font-weight: 800;">0</span>)
+        </button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('draftAdminTab', this)">
+          <i class="fa-solid fa-folder-open"></i> مسودات بانتظار الطالب (<span id="draftAdminBadge" style="color: var(--info); font-weight: 800;">0</span>)
+        </button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('visitorsTab', this)">
+          <i class="fa-solid fa-chart-line"></i> سجل الزيارات والنشاط (<span id="onlineNowBadge" style="color: var(--success); font-weight: 800;">0</span> متصل)
+        </button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('driveRosterTab', this)">
+          <i class="fa-brands fa-google-drive"></i> سجل الدفعة ومجلدات الطلاب
+        </button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('studentsTab', this)">
+          <i class="fa-solid fa-users-gear"></i> المشاريع المعتمدة (الرئيسية)
+        </button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('resetReqTab', this)">
+          <i class="fa-solid fa-key"></i> طلبات استعادة الرمز (<span id="resetReqBadge" style="color: var(--danger); font-weight: 800;">0</span>)
+        </button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('feedbackTab', this)">
+          <i class="fa-solid fa-inbox"></i> الاقتراحات (<span id="feedbackBadge">0</span>)
+        </button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('securityTab', this)">
+          <i class="fa-solid fa-sliders"></i> رابط السكربت والأمان
+        </button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('sourceCodeEditorTab', this)">
+          <i class="fa-solid fa-code"></i> محرر الكود المباشر
+        </button>
+      </div>
+
+      <!-- تبويب طلبات الاعتماد -->
+      <div id="approvalsTab" class="admin-tab-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem; flex-wrap:wrap; gap:0.5rem;">
+          <p style="color: var(--text-muted); font-size: 0.82rem; margin:0;">
+            طلبات الطلاب المسجلة والمقدمة بانتظار قرار المدير:
+          </p>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>الرقم الأكاديمي</th>
+                <th>اسم المهندس</th>
+                <th>عنوان المشروع</th>
+                <th>فحص ومعاينة المرفق</th>
+                <th>المشاركة</th>
+                <th>الرمز السري</th>
+                <th>القرار الإداري الفوري</th>
+              </tr>
+            </thead>
+            <tbody id="approvalsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- تبويب مسودات الإدارة المرفوعة بدون تسجيل بانتظار استكمال الطالب -->
+      <div id="draftAdminTab" class="admin-tab-content" style="display: none;">
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 0.8rem;">
+          ملفات البرمجة المرفوعة من قبل المدير كمسودة؛ لا تنشر في الصفحة الرئيسية حتى يقوم الطالب بتسجيل دخوله وتأكيده وموافقة المدير:
+        </p>
+        <div style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>الرقم الأكاديمي</th>
+                <th>اسم المهندس</th>
+                <th>عنوان المشروع</th>
+                <th>حالة كلمة السر</th>
+                <th>رابط الملف المرفوع</th>
+                <th>حالة المشروع</th>
+                <th>إجراءات المدير</th>
+              </tr>
+            </thead>
+            <tbody id="draftAdminTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- تبويب الزيارات والتتبع الحي -->
+      <div id="visitorsTab" class="admin-tab-content" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem;">
+          <div>
+            <h4 style="color: var(--gold); font-size: 0.95rem;">مراقبة تفاعل ودخول المهندسين إلى المنصة</h4>
+            <p style="color: var(--text-muted); font-size: 0.78rem;">تتبع لحظي يوضح من يتصفح الآن وفترات آخر زيارة وإجمالي الزيارات.</p>
+          </div>
+          <button onclick="exportVisitorsReportCSV()" class="btn-top btn-gold" style="font-size: 0.75rem; padding: 0.35rem 0.7rem;">
+            <i class="fa-solid fa-file-csv"></i> تصدير الكشف (CSV)
+          </button>
+        </div>
+
+        <div class="filter-btn-group">
+          <button class="btn-filter-pill active" onclick="setVisitorsTimeFilter('all', this)">الكل (<span id="countAllFilter">0</span>)</button>
+          <button class="btn-filter-pill" onclick="setVisitorsTimeFilter('online', this)">🟢 متصل الآن (<span id="countOnlineFilter">0</span>)</button>
+          <button class="btn-filter-pill" onclick="setVisitorsTimeFilter('today', this)">اليوم (<span id="countTodayFilter">0</span>)</button>
+          <button class="btn-filter-pill" onclick="setVisitorsTimeFilter('week', this)">هذا الأسبوع (<span id="countWeekFilter">0</span>)</button>
+          <button class="btn-filter-pill" onclick="setVisitorsTimeFilter('month', this)">هذا الشهر (<span id="countMonthFilter">0</span>)</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>الرقم الأكاديمي</th>
+                <th>اسم المهندس</th>
+                <th>النظام</th>
+                <th>حالة الاتصال</th>
+                <th>آخر وقت زيارة</th>
+                <th>الفترة الزمنية</th>
+                <th>إجمالي الزيارات</th>
+              </tr>
+            </thead>
+            <tbody id="visitorsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- تبويب سجل الدفعة الكامل ومجلدات الطلاب -->
+      <div id="driveRosterTab" class="admin-tab-content" style="display: none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem; flex-wrap:wrap; gap:0.5rem;">
+          <p style="color: var(--text-muted); font-size: 0.82rem; margin:0;">
+            دليل الدفعة الكامل (92 مهندساً) موضحاً فيه الرموز ومجلدات الطلاب المستقلة في Drive:
+          </p>
+          <button onclick="openAdminUploadModalDirect()" class="btn-top btn-gold" style="font-size:0.75rem; padding:0.35rem 0.8rem;">
+            <i class="fa-solid fa-file-arrow-up"></i> رفع برمجة طالب مباشرة (كمسودة)
+          </button>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>الرقم الأكاديمي</th>
+                <th>اسم المهندس</th>
+                <th>النظام</th>
+                <th>الرمز (PIN)</th>
+                <th>ملف المشروع</th>
+                <th>مجلد الطالب</th>
+                <th>إجراءات المدير</th>
+              </tr>
+            </thead>
+            <tbody id="driveRosterTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- تبويب المشاريع المعتمدة في الصفحة الرئيسية فقط -->
+      <div id="studentsTab" class="admin-tab-content" style="display: none;">
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 0.8rem;">
+          قائمة مشاريع الطلاب المعتمدة رسمياً والمنشورة في الصفحة الرئيسية:
+        </p>
+        <div style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>الرقم الأكاديمي</th>
+                <th>اسم المهندس</th>
+                <th>عنوان المشروع</th>
+                <th>الرمز (PIN)</th>
+                <th>رابط الملف المعتمد</th>
+                <th>صلاحية النسخ</th>
+                <th>إجراءات المدير</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- تبويب طلبات استعادة الرمز -->
+      <div id="resetReqTab" class="admin-tab-content" style="display: none;">
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 0.8rem;">
+          طلبات استعادة الرمز السري الواردة للمدير:
+        </p>
+        <div style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>الرقم الأكاديمي</th>
+                <th>اسم المهندس</th>
+                <th>عنوان المشروع</th>
+                <th>رمز التتبع الأمني</th>
+                <th>ملاحظة الطالب</th>
+                <th>إجراء المدير</th>
+              </tr>
+            </thead>
+            <tbody id="resetReqTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- تبويب الاقتراحات -->
+      <div id="feedbackTab" class="admin-tab-content" style="display: none;">
+        <div id="feedbackListContainer"></div>
+      </div>
+
+      <!-- تبويب إعدادات رابط السكربت والأمان -->
+      <div id="securityTab" class="admin-tab-content" style="display: none;">
+        <div style="background: rgba(197, 160, 89, 0.08); border: 1px solid var(--border-gold); padding: 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
+          <h4 style="color: var(--gold-light); margin-bottom: 0.4rem; font-size: 0.95rem;">
+            <i class="fa-solid fa-link"></i> تعديل رابط Google Apps Script مباشرة من الموقع
+          </h4>
+          <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.8rem;">
+            يمكنك تغيير رابط السكربت في أي وقت دون أن تفقد أي بيانات مسجلة ودون الحاجة لإعادة رفع الموقع على Netlify.
+          </p>
+          <div class="form-group">
+            <label>رابط السكربت السحابي النشط (Web App URL):</label>
+            <input type="url" id="adminCustomScriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+          </div>
+          <button onclick="saveCustomScriptUrl()" class="btn-top btn-gold" style="font-size: 0.8rem; padding: 0.45rem 1rem;">
+            <i class="fa-solid fa-floppy-disk"></i> حفظ الرابط فوراً
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label>كلمة السر الحالية للمدير</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="adminOldPass" placeholder="أدخل كلمة السر الحالية">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('adminOldPass')" title="إظهار / إخفاء الرمز">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>كلمة السر الجديدة</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="adminNewPass" placeholder="أدخل كلمة السر الجديدة">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('adminNewPass')" title="إظهار / إخفاء الرمز">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <button onclick="changeAdminPassword()" class="btn-top btn-gold" style="width: 100%; justify-content: center;">
+          تحديث كلمة سر المدير
+        </button>
+      </div>
+
+      <!-- تبويب محرر الكود المباشر من داخل لوحة التحكم -->
+      <div id="sourceCodeEditorTab" class="admin-tab-content" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <h4 style="color: var(--gold-light); font-size: 0.95rem;"><i class="fa-solid fa-terminal"></i> محرر كود الموقع الحي (HTML / CSS / JS)</h4>
+            <p style="color: var(--text-muted); font-size: 0.78rem;">عدّل أي نصوص، عناصر، أو أكواد هنا مباشرة؛ سيتم تطبيقها في الحال دون الحاجة لإعادة الرفع إلى Netlify.</p>
+          </div>
+          <div style="display: flex; gap: 0.4rem;">
+            <button onclick="restoreDefaultAppCode()" class="btn-top btn-outline" style="font-size: 0.75rem; padding: 0.35rem 0.7rem; color: var(--danger); border-color: rgba(239,68,68,0.3);">
+              <i class="fa-solid fa-rotate-left"></i> استعادة النسخة الأصلية
+            </button>
+            <button onclick="saveAndApplyLiveCode()" class="btn-top btn-gold" style="font-size: 0.75rem; padding: 0.35rem 0.9rem;">
+              <i class="fa-solid fa-cloud-arrow-up"></i> حفظ وتطبيق الكود فوراً
+            </button>
+          </div>
+        </div>
+        <textarea id="liveSourceCodeEditor" class="code-editor-area" spellcheck="false" placeholder="جاري قراءة كود الموقع..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة رفع البرمجة كمسودة بدون أي تعيين لكلمة سر -->
+  <div class="modal-overlay" id="adminUploadModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="color: var(--gold);"><i class="fa-solid fa-cloud-arrow-up"></i> رفع برمجة طالب (كمسودة بدون اعتماد PIN)</h3>
+        <button class="btn-close" onclick="closeModal('adminUploadModal')">&times;</button>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.8rem;">
+        يتم حفظ الملف داخل مجلد الطالب في Drive بدون تعيين كلمة سر؛ ولن يُنشر بالصفحة الرئيسية حتى يسجل الطالب كلمة السر الخاصة به ويوافق المدير.
+      </p>
+      <form onsubmit="handleAdminDirectUpload(event)">
+        <div class="form-group">
+          <label>اختر المهندس من كشف الدفعة</label>
+          <select id="adminUploadStudentSelect" required onchange="onAdminSelectUploadStudent(this.value)">
+            <option value="">-- اختر اسم المهندس --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>عنوان المشروع</label>
+          <input type="text" id="adminUploadTitle" required placeholder="عنوان مشروع التخرج...">
+        </div>
+        <div class="form-group">
+          <label>ملف البرمجة المعمارية (PDF):</label>
+          <input type="file" id="adminUploadPdfInput" accept=".pdf,application/pdf">
+        </div>
+        <div class="form-group">
+          <label>صورة غلاف البرمجة (اختياري):</label>
+          <input type="file" id="adminUploadCoverInput" accept="image/png,image/jpeg,image/webp,image/jpg">
+        </div>
+        <button type="submit" id="btnAdminDirectUploadSubmit" class="btn-top btn-gold" style="width: 100%; justify-content: center; padding: 0.75rem;">
+          حفظ الملف في مجلد الطالب دون اعتماده بالرئيسية
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="adminLoginModal">
+    <div class="modal-card" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3 style="color: var(--gold);"><i class="fa-solid fa-lock"></i> تسجيل دخول المدير</h3>
+        <button class="btn-close" onclick="closeModal('adminLoginModal')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>كلمة سر إدارة النظام</label>
+        <div class="password-input-wrapper">
+          <input type="password" id="adminMasterPass" placeholder="أدخل رمز المدير السري">
+          <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('adminMasterPass')" title="إظهار / إخفاء الرمز">
+            <i class="fa-regular fa-eye"></i>
+          </button>
+        </div>
+      </div>
+      <button onclick="verifyAdminLogin()" class="btn-top btn-gold" style="width: 100%; justify-content: center; padding:0.75rem;">
+        دخول لوحة التحكم
+      </button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="adminEditStudentModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="color: var(--gold);"><i class="fa-solid fa-user-gear"></i> تعديل مشروع الطالب (بصلاحيات المدير)</h3>
+        <button class="btn-close" onclick="closeModal('adminEditStudentModal')">&times;</button>
+      </div>
+      <form onsubmit="handleAdminSaveStudentEdit(event)">
+        <input type="hidden" id="adminEditTargetId">
+        <div class="form-group">
+          <label>اسم المهندس ورقم الأكاديمي</label>
+          <input type="text" id="adminEditStudentInfo" readonly style="opacity: 0.85; font-weight:700;">
+        </div>
+        <div class="form-group">
+          <label>عنوان المشروع</label>
+          <input type="text" id="adminEditTitle" required>
+        </div>
+        <div class="form-group">
+          <label>نبذة ومحددات البرمجة المعمارية</label>
+          <textarea id="adminEditDesc" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>رابط الملف المعتمد في Google Drive:</label>
+          <input type="url" id="adminEditFileUrl" placeholder="https://drive.google.com/file/d/...">
+        </div>
+        <div class="form-group">
+          <label>سماحية نسخ ومشاركة الرابط</label>
+          <select id="adminEditAllowShare">
+            <option value="true">مسموح بنسخ ومشاركة الرابط</option>
+            <option value="false">محمي (معاينة داخل المنصة فقط)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>كلمة السر (PIN الخاص بالطالب)</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="adminEditPin" required>
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('adminEditPin')" title="إظهار / إخفاء الرمز">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" id="btnAdminSaveEditSubmit" class="btn-top btn-gold" style="width: 100%; justify-content: center; padding: 0.75rem;">
+          حفظ واعتماد التعديلات سحابياً
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="viewModal">
+    <div class="modal-card" style="max-width: 850px; width: 95%;">
+      <div class="modal-header">
+        <h3 id="viewModalStudent"></h3>
+        <button class="btn-close" onclick="closeModal('viewModal')">&times;</button>
+      </div>
+      <div style="margin-bottom: 0.8rem;">
+        <h4 id="viewModalTitle" style="color: var(--gold); font-size: 1.15rem; margin-bottom: 0.3rem;"></h4>
+        <div id="viewModalId" style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.6rem;"></div>
+        <div style="background: rgba(0,0,0,0.3); padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border-subtle); margin-bottom: 0.8rem;">
+          <h5 style="color: var(--gold-light); margin-bottom: 0.3rem; font-size: 0.88rem;">موجز الدراسة والبرمجة المعمارية:</h5>
+          <p id="viewModalDesc" style="line-height: 1.5; color: #d1d5db; font-size: 0.82rem;"></p>
+        </div>
+      </div>
+      
+      <div style="background: rgba(197, 160, 89, 0.05); border: 1px solid var(--border-gold); padding: 0.8rem; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.4rem;">
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <i id="viewFileIcon" class="fa-regular fa-file-pdf" style="font-size: 1.5rem; color: var(--gold);"></i>
+            <span id="viewFileNameDisplay" style="font-weight: 700; font-size: 0.85rem;"></span>
+          </div>
+          <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+            <div id="viewModalShareSlot"></div>
+            <a id="openNewTabDocBtn" href="#" target="_blank" class="btn-top btn-gold" style="font-size: 0.75rem; padding: 0.35rem 0.65rem;">
+              <i class="fa-solid fa-up-right-from-square"></i> فتح بملء الشاشة
+            </a>
+            <div id="viewModalContactsRow" style="display: flex; gap: 0.3rem;"></div>
+          </div>
+        </div>
+        
+        <div id="mediaViewerContainer" class="media-preview-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    جامعة صنعاء — كلية الهندسة — قسم الهندسة المعمارية | الدفعة 37 &copy; 2026
+  </footer>
+
+  <script>
+    const DEFAULT_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytfsFNWtp5JoYbBgwECQccagt20j9SW-kFCnkuzyyPToOcjvX4davED_lLAiIqXITKhg/exec";
+    
+    function getActiveScriptUrl() {
+      return localStorage.getItem('arch37_custom_script_url') || DEFAULT_APPS_SCRIPT_URL;
+    }
+
+    let APPS_SCRIPT_URL = getActiveScriptUrl();
+    let ADMIN_MASTER_SECRET = localStorage.getItem('arch37_admin_pwd') || "admin37";
+
+    const architecturalWisdomBank = [
+      { text: "العمارة هي فن ترجمة الأحلام والوظائف إلى فراغات ملموسة تعيش فيها الأرواح.", author: "Frank Lloyd Wright" },
+      { text: "التفاصيل ليست مجرد لمسات عابرة؛ التفاصيل هي التي تصنع جوهر التصميم المعماري.", author: "Charles Eames" },
+      { text: "لكي تبدع عمارة خالدة، لا تصمم للمكان فحسب، بل صمم لروح الإنسان وثقافته وهويته.", author: "المعماري حسن فتحي" },
+      { text: "العمارة الحقيقية تبدأ عندما تضع لبنتين معاً بعناية وشغف وإتقان.", author: "Mies van der Rohe" },
+      { text: "المبنى ليس مجرد كتلة خرسانية، بل هو كائن يتنفس الضوء ويتناغم مع محيطه الطبيعي.", author: "Renzo Piano" },
+      { text: "التصميم الإبداعي يبدأ بالفهم العميق لاحتياجات الإنسان قبل أن تُرسم الخطوط الأولى.", author: "Zaha Hadid" },
+      { text: "العمارة هي الموسيقى المجسدة في الفراغ، وتناغمها هو سر الإلهام والجمال.", author: "Johann Wolfgang von Goethe" },
+      { text: "القوة لا تكمن في تعقيد الكتلة، بل في بساطة ونقاء الفكرة الوظيفية والإنشائية.", author: "Le Corbusier" },
+      { text: "مشروع التخرج ليس مجرد استيفاء متطلب، بل هو الحجر الأساس لبصمتك الهندسية في العالم.", author: "أرشيف الدفعة 37" },
+      { text: "الضوء والظل هما الريشة التي ترسم بها العمارة معالم الفضاء الداخلي والحياة.", author: "Louis Kahn" },
+      { text: "لكل خط ترسمه معنى، ولكل فراغ تخلقه أثر؛ اجعل تصاميمك تتحدث عن طموحك وإصرارك.", author: "حكمة معمارية" }
+    ];
+
+    const rawRoster = [
+      {"num": 1, "name": "سيف عبد الواحد سيف على الخراشي", "id": "202370310", "system": "عام"},
+      {"num": 2, "name": "محمد عادل عبده الرهاوي", "id": "202370368", "system": "عام"},
+      {"num": 3, "name": "نزار نبيل عبد الواحد عبد المغني", "id": "202370398", "system": "عام"},
+      {"num": 4, "name": "اكرم محمد يحيى يحيى الامروري", "id": "202270024", "system": "عام"},
+      {"num": 5, "name": "رشید محمد احمد صالح الشماخ", "id": "202270149", "system": "عام"},
+      {"num": 6, "name": "احمد صادق احمد احمد الفقيه", "id": "202374003", "system": "موازي"},
+      {"num": 7, "name": "اسامه ابراهيم علي محسن الحمزي", "id": "202374007", "system": "موازي"},
+      {"num": 8, "name": "محمد عبدالله حمود زوبر", "id": "202374137", "system": "موازي"},
+      {"num": 9, "name": "قصي انيس عبدالله خالد الجعفري", "id": "202374140", "system": "موازي"},
+      {"num": 10, "name": "محمد صلاح ناجي حيمد", "id": "202374141", "system": "موازي"},
+      {"num": 11, "name": "عدنان محمد احمد حظين", "id": "202374164", "system": "موازي"},
+      {"num": 12, "name": "احمد كمال يحيى مثنى ناصر الشبيلي", "id": "202374223", "system": "موازي"},
+      {"num": 13, "name": "هاشم علي حمود علي جسار", "id": "202374225", "system": "موازي"},
+      {"num": 14, "name": "محمد عبد الباسط على الصنعاني", "id": "202374237", "system": "موازي"},
+      {"num": 15, "name": "عبد الكريم محسن علي غشيم", "id": "202274140", "system": "موازي"},
+      {"num": 16, "name": "محمد فؤاد لطف عبد اللطيف", "id": "202274196", "system": "موازي"},
+      {"num": 17, "name": "محمد عبد السلام نعمان حسن الزمر", "id": "202274220", "system": "موازي"},
+      {"num": 18, "name": "فاطمة علي احمد عبدالله العمودي", "id": "202370005", "system": "عام"},
+      {"num": 19, "name": "نور خالد فؤاد محمد البناء", "id": "202370007", "system": "عام"},
+      {"num": 20, "name": "منار امین عبدالله عبده النظاري", "id": "202370014", "system": "عام"},
+      {"num": 21, "name": "ملاك محمود يحيى حميد الهيلمه", "id": "202370023", "system": "عام"},
+      {"num": 22, "name": "وداد عمار احمد حسین صلاح", "id": "202370026", "system": "عام"},
+      {"num": 23, "name": "خولة ناجي محمد عبد الجليل", "id": "202370028", "system": "عام"},
+      {"num": 24, "name": "ابتسام محمد علي عبد الله الرابع", "id": "202370039", "system": "عام"},
+      {"num": 25, "name": "صفية حفظ الله سعد الجسار", "id": "202370042", "system": "عام"},
+      {"num": 26, "name": "اية ابراهيم سمير صالح العلفي", "id": "202370047", "system": "عام"},
+      {"num": 27, "name": "احلام عبد الملك طاهر عبده الحاج", "id": "202370052", "system": "عام"},
+      {"num": 28, "name": "شهدهانی محمد محمد المطري", "id": "202370056", "system": "عام"},
+      {"num": 29, "name": "اسماء عبد الجبار على الغفاري", "id": "202370057", "system": "عام"},
+      {"num": 30, "name": "سمية عبد الله حفظ الله بنیان", "id": "202370073", "system": "عام"},
+      {"num": 31, "name": "ريما عبد السلام غالب ناجي المخلافي", "id": "202370087", "system": "عام"},
+      {"num": 32, "name": "نور انور ردمان اسماعيل الشيباني", "id": "202370092", "system": "عام"},
+      {"num": 33, "name": "ایمان احمد عبدالله محمد الصعدي", "id": "202370096", "system": "عام"},
+      {"num": 34, "name": "ملاك عبد الرزاق عثمان على الاغبري", "id": "202370098", "system": "عام"},
+      {"num": 35, "name": "ابرار عبدالمولى محمد الحمادي", "id": "202370100", "system": "عام"},
+      {"num": 36, "name": "افنان عبد المولى محمد الحمادي", "id": "202370101", "system": "عام"},
+      {"num": 37, "name": "رهام عرفات على عبد الرب الصلوي", "id": "202370107", "system": "عام"},
+      {"num": 38, "name": "اسرار على عبدالله الدوهي", "id": "202370111", "system": "عام"},
+      {"num": 39, "name": "فاطمة الزهراء ناصر حمود ثابت الحاشدي", "id": "202370113", "system": "عام"},
+      {"num": 40, "name": "خولة محمد احمد صالح السميني", "id": "202370114", "system": "عام"},
+      {"num": 41, "name": "نورهان نبيل محمد عبد الرحمن الجديري", "id": "202370116", "system": "عام"},
+      {"num": 42, "name": "غدير عبد اللطيف محمد الياجوري", "id": "202370119", "system": "عام"},
+      {"num": 43, "name": "انسام علی احمد حسین منصر", "id": "202370125", "system": "عام"},
+      {"num": 44, "name": "ربي عبد اللطيف حسن لطف العلفي", "id": "202370134", "system": "عام"},
+      {"num": 45, "name": "نور محمد عبد القدوس حسين رمزي", "id": "202370137", "system": "عام"},
+      {"num": 46, "name": "هديل صادق حسن نعمان", "id": "202370162", "system": "عام"},
+      {"num": 47, "name": "فاطمة غانم عتيق العصري", "id": "202370169", "system": "عام"},
+      {"num": 48, "name": "عصماء محمد عبد القادر شرف الدين", "id": "202370174", "system": "عام"},
+      {"num": 49, "name": "شيماء احمد على صالح الظرافي", "id": "202370177", "system": "عام"},
+      {"num": 50, "name": "رؤى خالد عبده ناجي قاسم", "id": "202370267", "system": "عام"},
+      {"num": 51, "name": "شهد احمد عبد الله صالح الشلبي", "id": "202370304", "system": "عام"},
+      {"num": 52, "name": "ثريا عبد القدوس يحيى على الهادي", "id": "202370306", "system": "عام"},
+      {"num": 53, "name": "شيماء سامی احمد على ابو سرعه", "id": "202370319", "system": "عام"},
+      {"num": 54, "name": "طيبة عامر صالح عوض", "id": "202370325", "system": "عام"},
+      {"num": 55, "name": "هبة علي سعيد سيف الحمادي", "id": "202370326", "system": "عام"},
+      {"num": 56, "name": "زينب مطهر عبد الرقيب عبد العزيز الرميمه", "id": "202370337", "system": "عام"},
+      {"num": 57, "name": "ود محمد مصلح احمد الهبل", "id": "202370345", "system": "عام"},
+      {"num": 58, "name": "مروی رضوان عبد الرقيب الفتيح", "id": "202370347", "system": "عام"},
+      {"num": 59, "name": "رحاب سامي احمد علي ابو سرعه", "id": "202370348", "system": "عام"},
+      {"num": 60, "name": "رنيم مفرح محسن احمد الحاجي", "id": "202370354", "system": "عام"},
+      {"num": 61, "name": "إيمان انور عبد الله احمد الصنعاني", "id": "202370357", "system": "عام"},
+      {"num": 62, "name": "هلا احمد عبد الله سعيد النجار", "id": "202270229", "system": "عام"},
+      {"num": 63, "name": "دعاء على عبد الله أحمد الغيل", "id": "201570149", "system": "عام"},
+      {"num": 64, "name": "رنا حميد علي محسن الصرابي", "id": "202374014", "system": "موازي"},
+      {"num": 65, "name": "خولة احمد عبد الجبار عبده الشوافي", "id": "202374015", "system": "موازي"},
+      {"num": 66, "name": "انسام رفیق احمد علي الشرجبي", "id": "202374016", "system": "موازي"},
+      {"num": 67, "name": "ملاك محمد هزاع المحمدي", "id": "202374033", "system": "موازي"},
+      {"num": 68, "name": "ایلاف عبدالله محمد عبد الملك المروني", "id": "202374044", "system": "موازي"},
+      {"num": 69, "name": "نور العين محمد عبدالله اسماعيل الجرافي", "id": "202374062", "system": "موازي"},
+      {"num": 70, "name": "بلقيس علي علي محمد ذيبان", "id": "202374067", "system": "موازي"},
+      {"num": 71, "name": "ريم عقلان صالح محمد عجلان", "id": "202374138", "system": "موازي"},
+      {"num": 72, "name": "سميحة محمد احمد حسين الحيمي", "id": "202374162", "system": "موازي"},
+      {"num": 73, "name": "شيماء شايف غالب محمد الحرازي", "id": "202374172", "system": "موازي"},
+      {"num": 74, "name": "ريم عمار احمد حسین صلاح", "id": "202374201", "system": "موازي"},
+      {"num": 75, "name": "مشاعل يحيى علي الدروبي", "id": "202374230", "system": "موازي"},
+      {"num": 76, "name": "وجدان جمال عبد الكريم المحويتي", "id": "202374239", "system": "موازي"},
+      {"num": 77, "name": "انهار محمد مسعد على الضراب", "id": "202374272", "system": "موازي"},
+      {"num": 78, "name": "شموخ عيبان عبدالله الجبري", "id": "202274302", "system": "موازي"},
+      {"num": 79, "name": "بهاء عارف حسن عبده الحميري", "id": "202274366", "system": "موازي"},
+      {"num": 80, "name": "امنة محمد صالح محمد الصغير", "id": "202174240", "system": "موازي"},
+      {"num": 81, "name": "ديمة عامر يحيى الجبوري", "id": "202373015", "system": "نفقة"},
+      {"num": 82, "name": "عزالدين حمود محمد علی", "id": "202370066", "system": "عام"},
+      {"num": 83, "name": "ايمن يحيى على الاصبحي", "id": "202370141", "system": "عام"},
+      {"num": 84, "name": "محمد حمود قائد غانم الجعفري", "id": "202370198", "system": "عام"},
+      {"num": 85, "name": "عبد المجيد احمد على على العزب", "id": "202370188", "system": "عام"},
+      {"num": 86, "name": "صقر محمد جار الله الفقيه", "id": "202370189", "system": "عام"},
+      {"num": 87, "name": "فارس محمد محمد على العرومه", "id": "202370239", "system": "عام"},
+      {"num": 88, "name": "اسامه ریدان عبد الله محمد المقرمي", "id": "202174112", "system": "موازي"},
+      {"num": 89, "name": "محمد عقيل مصلح قائد الاقرع", "id": "202174193", "system": "موازي"},
+      {"num": 90, "name": "عمر حنيني محمد ناصر الحنيني", "id": "202073022", "system": "موازي"},
+      {"num": 91, "name": "محمد عبد الكريم احمد السريحي", "id": "202073039", "system": "موازي"},
+      {"num": 92, "name": "محمد فايز يحيى حزام الحبابي", "id": "202373001", "system": "نفقة"}
+    ];
+
+    const sortedRoster = rawRoster.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+    let defaultProjects = {
+      "202370066": {
+        id: "202370066",
+        name: "عزالدين حمود محمد علي",
+        system: "عام",
+        title: "بوابة موكا | مركز اقتصادي وصناعي وسياحي متكامل",
+        desc: "دراسة معمارية وبرمجة وظيفية متكاملة لسلاسل معالجة وتصدير البن ومحطة تنموية وسياحية متكاملة بالساحل الغربي.",
+        pin: "2026",
+        allowShare: true,
+        approved: true,
+        contacts: [
+          { type: "telegram", val: "aezzaldeen42" }
+        ],
+        fileName: "مشروع_بوابة_موكا_الكامل.pdf",
+        fileUrl: "https://drive.google.com/drive/folders/1nyAI18hoDjW_w2-S-Fw6G02_9I4gQ5Om"
+      }
+    };
+
+    let projectStore = Object.assign({}, defaultProjects, JSON.parse(localStorage.getItem('arch37_v12_db')) || {});
+    let pendingApprovals = JSON.parse(localStorage.getItem('arch37_pending_approvals_v12')) || {};
+    let resetRequests = JSON.parse(localStorage.getItem('arch37_reset_requests_v12')) || {};
+    let studentVisits = JSON.parse(localStorage.getItem('arch37_student_visits')) || {};
+    let feedbackList = JSON.parse(localStorage.getItem('arch37_feedbacks')) || [];
+    let currentFilterTime = 'all';
+
+    function displayRandomWisdom(forceAnimate = false) {
+      const textEl = document.getElementById('wisdomContentDisplay');
+      const authorEl = document.getElementById('wisdomAuthorDisplay');
+      if (!textEl || !authorEl) return;
+
+      const randomItem = architecturalWisdomBank[Math.floor(Math.random() * architecturalWisdomBank.length)];
+      
+      if (forceAnimate) {
+        textEl.style.opacity = '0.3';
+        authorEl.style.opacity = '0.3';
+        setTimeout(() => {
+          textEl.textContent = `"${randomItem.text}"`;
+          authorEl.textContent = `— ${randomItem.author}`;
+          textEl.style.opacity = '1';
+          authorEl.style.opacity = '1';
+        }, 150);
+      } else {
+        textEl.textContent = `"${randomItem.text}"`;
+        authorEl.textContent = `— ${randomItem.author}`;
+      }
+    }
+
+    function triggerWisdomModal(isFirstTime = false) {
+      const activeUser = sessionStorage.getItem('arch37_authenticated_user');
+      const student = sortedRoster.find(s => s.id === activeUser);
+      const studentName = student ? student.name : "المهندس";
+
+      const titleEl = document.getElementById('welcomeWisdomStudentTitle');
+      const subTextEl = document.getElementById('welcomeWisdomSubText');
+      const badgeEl = document.getElementById('wisdomBadgeType');
+      const iconBox = document.getElementById('welcomeIconBox');
+
+      if (isFirstTime) {
+        if (titleEl) titleEl.innerHTML = `مرحباً بك يا باشمهندس: <span style="color:var(--gold-light);">${studentName}</span> 🌟`;
+        if (subTextEl) subTextEl.textContent = "سعداء بانضمامك لأول مرة إلى صرح أرشيف مشاريع التخرج للدفعة 37!";
+        if (badgeEl) badgeEl.textContent = "🏛️ حكمة انطلاقتك المعمارية";
+        if (iconBox) iconBox.innerHTML = '<i class="fa-solid fa-crown" style="color:#fde047;"></i>';
+      } else {
+        if (titleEl) titleEl.innerHTML = `أهلاً بعودتك يا باشمهندس: <span style="color:var(--gold-light);">${studentName}</span> 📐`;
+        if (subTextEl) subTextEl.textContent = "نتمنى لك يوماً هندسياً مليئاً بالإبداع والإنجاز في مشروعك!";
+        if (badgeEl) badgeEl.textContent = "💡 حكمة اليوم المعمارية";
+        if (iconBox) iconBox.innerHTML = '<i class="fa-solid fa-lightbulb" style="color:var(--gold);"></i>';
+      }
+
+      displayRandomWisdom(false);
+      openModal('welcomeWisdomModal');
+    }
+
+    function saveCustomScriptUrl() {
+      const input = document.getElementById('adminCustomScriptUrlInput');
+      const newUrl = input.value.trim();
+      if (!newUrl) {
+        alert('يرجى إدخال رابط صالح!');
+        return;
+      }
+      localStorage.setItem('arch37_custom_script_url', newUrl);
+      APPS_SCRIPT_URL = newUrl;
+      alert('تم حفظ رابط السكربت بنجاح وتفعيله فوراً دون التأثير على البيانات!');
+      syncWithCloudDatabase(true);
+    }
+
+    function loadLiveSourceCodeToEditor() {
+      const editor = document.getElementById('liveSourceCodeEditor');
+      if (!editor) return;
+      const customCode = localStorage.getItem('arch37_override_html');
+      editor.value = customCode ? customCode : document.documentElement.outerHTML;
+    }
+
+    async function saveAndApplyLiveCode() {
+      const editor = document.getElementById('liveSourceCodeEditor');
+      const newSource = editor.value.trim();
+      if (!newSource) {
+        alert('لا يمكن حفظ كود فارغ!');
+        return;
+      }
+      if (confirm('هل أنت متأكد من حفظ وتطبيق هذا الكود البرمجي الآن؟ سيتم تحديث الموقع فوراً.')) {
+        localStorage.setItem('arch37_override_html', newSource);
+        
+        try {
+          await sendPostToCloud({
+            action: "saveLiveCode",
+            html: newSource
+          });
+        } catch (e) {
+          console.warn("Cloud code backup skipped:", e);
+        }
+
+        alert('تم تطبيق الكود البرمجي بنجاح! سيتم إعادة تحميل الصفحة لتفعيل التغييرات.');
+        location.reload();
+      }
+    }
+
+    function restoreDefaultAppCode() {
+      if (confirm('هل أنت متأكد من إلغاء التعديلات البرمجية والعودة للنسخة الأصلية لملف الموقع؟')) {
+        localStorage.removeItem('arch37_override_html');
+        alert('تمت استعادة الكود الأصلي بنجاح!');
+        location.reload();
+      }
+    }
+
+    async function syncWithCloudDatabase(notifyUser = false) {
+      const stats = document.getElementById('statsLabel');
+      if (stats && !notifyUser) stats.textContent = 'جاري مزامنة المشروعات مع السحابة...';
+
+      try {
+        const response = await fetch(`${APPS_SCRIPT_URL}?action=getAllData&t=${Date.now()}`);
+        const result = await response.json();
+
+        if (result.status === "success") {
+          projectStore = Object.assign({}, projectStore, defaultProjects, result.projects || {});
+          pendingApprovals = result.pending || {};
+          studentVisits = Object.assign({}, studentVisits, result.visits || {});
+          resetRequests = Object.assign({}, resetRequests, result.resetReqs || {});
+          if (result.feedbacks && result.feedbacks.length > 0) feedbackList = result.feedbacks;
+
+          localStorage.setItem('arch37_v12_db', JSON.stringify(projectStore));
+          localStorage.setItem('arch37_pending_approvals_v12', JSON.stringify(pendingApprovals));
+          localStorage.setItem('arch37_student_visits', JSON.stringify(studentVisits));
+          localStorage.setItem('arch37_reset_requests_v12', JSON.stringify(resetRequests));
+          localStorage.setItem('arch37_feedbacks', JSON.stringify(feedbackList));
+
+          renderStudentGrid(sortedRoster);
+          updateBadges();
+          updateStudentWelcomeBar();
+          if (notifyUser) alert('تمت المزامنة وحفظ البيانات بنجاح!');
+        }
+      } catch (err) {
+        console.error("Cloud sync notice:", err);
+        renderStudentGrid(sortedRoster);
+        updateBadges();
+      }
+    }
+
+    function sendPayloadWithProgress(payload, onProgress) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", APPS_SCRIPT_URL, true);
+        xhr.setRequestHeader("Content-Type", "text/plain;charset=utf-8");
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable && onProgress) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            onProgress(percent, event.loaded, event.total);
+          }
+        };
+
+        xhr.onload = () => {
+          try {
+            const res = JSON.parse(xhr.responseText);
+            resolve(res);
+          } catch (e) {
+            resolve({ status: "success" });
+          }
+        };
+
+        xhr.onerror = () => {
+          fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          }).then(() => resolve({ status: "success" })).catch(err => reject(err));
+        };
+
+        xhr.send(JSON.stringify(payload));
+      });
+    }
+
+    async function sendPostToCloud(payload) {
+      return sendPayloadWithProgress(payload, null);
+    }
+
+    async function handleAdminManualSync() {
+      const icon = document.getElementById('adminSyncIcon');
+      const text = document.getElementById('adminSyncText');
+      const btn = document.getElementById('btnAdminGlobalRefresh');
+
+      if (icon) icon.classList.add('fa-spin');
+      if (text) text.textContent = "جاري التحديث...";
+      if (btn) btn.disabled = true;
+
+      await syncWithCloudDatabase(false);
+      loadApprovalsDashboard();
+      loadDraftAdminDashboard();
+      loadVisitorsDashboard();
+      loadDriveRosterDashboard();
+      loadResetRequestsDashboard();
+      loadAdminApprovedProjects();
+
+      if (icon) icon.classList.remove('fa-spin');
+      if (text) text.textContent = "تم التحديث!";
+      setTimeout(() => {
+        if (text) text.textContent = "تحديث فوري";
+        if (btn) btn.disabled = false;
+      }, 1400);
+    }
+
+    function isImageFile(fileName, fileUrl) {
+      const target = (fileName || fileUrl || "").toLowerCase();
+      return target.endsWith('.jpg') || target.endsWith('.jpeg') || target.endsWith('.png') || target.endsWith('.webp') || target.includes('data:image/');
+    }
+
+function updateStudentWelcomeBar() {
+  const activeUser = sessionStorage.getItem('arch37_authenticated_user');
+  const bar = document.getElementById('userWelcomeBar');
+  if (!bar) return;
+
+  if (!activeUser) {
+    bar.style.display = 'none';
+    return;
+  }
+
+  if (activeUser === 'admin') {
+    bar.style.display = 'flex';
+    document.getElementById('welcomeBarName').textContent = "أهلاً بك: مدير المنصة العام 🏛️";
+    document.getElementById('welcomeBarId').textContent = "صلاحيات الإدارة والتحكم الكاملة بالنظام السحابي";
+    return;
+  }
+
+  const student = sortedRoster.find(s => s.id === activeUser);
+  const proj = projectStore[activeUser];
+
+  if (student) {
+    bar.style.display = 'flex';
+    document.getElementById('welcomeBarName').innerHTML = `مرحباً بك يا باشمهندس: <span style="color:var(--gold-light);">${student.name}</span> 📐`;
+    document.getElementById('welcomeBarId').textContent = `الرقم الأكاديمي: ${student.id} • نظام: ${student.system} • الترتيب: #${student.num}`;
+
+    // حقق وتنسيق ظهور الصورة الشخصية في رأس الواجهة وشريط الترحيب
+    const welcomeInfoDiv = document.querySelector('.user-welcome-info');
+    if (welcomeInfoDiv) {
+      let avatarContainer = document.getElementById('userCustomAvatarBox');
+      if (!avatarContainer) {
+        avatarContainer = document.createElement('div');
+        avatarContainer.id = 'userCustomAvatarBox';
+        avatarContainer.style.cssText = "width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--gold); overflow: hidden; display: flex; align-items: center; justify-content: center; background: rgba(197, 160, 89, 0.15); flex-shrink: 0; box-shadow: 0 0 10px var(--gold-glow);";
+        welcomeInfoDiv.prepend(avatarContainer);
+      }
+
+      if (proj && proj.avatarUrl) {
+        avatarContainer.innerHTML = `<img src="${proj.avatarUrl}" alt="صورة الطالب" style="width: 100%; height: 100%; object-fit: cover;">`;
+      } else {
+        avatarContainer.innerHTML = `<i class="fa-solid fa-user-graduate" style="color: var(--gold); font-size: 1.1rem;"></i>`;
+      }
+    }
+  } else {
+    bar.style.display = 'none';
+  }
+}
+    function openStudentEditModalDirect() {
+      const activeUser = sessionStorage.getItem('arch37_authenticated_user');
+      if (activeUser && activeUser !== 'admin') {
+        document.getElementById('editId').value = activeUser;
+        verifyRosterStudent('edit');
+      }
+      openModal('editModal');
+    }
+
+    function recordStudentVisit(studentId, studentName) {
+      if (!studentId || studentId === 'admin') return;
+      sendPostToCloud({
+        action: "recordVisit",
+        studentId: studentId,
+        studentName: studentName
+      });
+    }
+
+    function sendHeartbeat() {
+      const activeUser = sessionStorage.getItem('arch37_authenticated_user');
+      if (activeUser && activeUser !== 'admin') {
+        const student = sortedRoster.find(s => s.id === activeUser);
+        sendPostToCloud({
+          action: "recordVisit",
+          studentId: activeUser,
+          studentName: student ? student.name : ""
+        });
+      }
+    }
+    setInterval(sendHeartbeat, 60000);
+
+    function updateBadges() {
+      const pCount = Object.keys(pendingApprovals).length;
+      const rCount = Object.keys(resetRequests).length;
+      const draftAdminCount = Object.keys(projectStore).filter(id => projectStore[id].isDraftAdmin === true && !projectStore[id].approved).length;
+      const onlineCount = getOnlineStudentsCount();
+
+      if (document.getElementById('approvalsBadge')) document.getElementById('approvalsBadge').textContent = pCount;
+      if (document.getElementById('draftAdminBadge')) document.getElementById('draftAdminBadge').textContent = draftAdminCount;
+      if (document.getElementById('resetReqBadge')) document.getElementById('resetReqBadge').textContent = rCount;
+      if (document.getElementById('onlineNowBadge')) document.getElementById('onlineNowBadge').textContent = onlineCount;
+    }
+
+    function getOnlineStudentsCount() {
+      const now = Date.now();
+      let count = 0;
+      Object.keys(studentVisits).forEach(id => {
+        const item = studentVisits[id];
+        if (item && item.lastTimestamp && (now - item.lastTimestamp <= 3 * 60 * 1000)) {
+          count++;
+        }
+      });
+      return count;
+    }
+
+    function formatTimeAgo(timestamp) {
+      if (!timestamp) return 'لم يزر المنصة بعد';
+      const diffSec = Math.floor((Date.now() - timestamp) / 1000);
+      if (diffSec < 60) return 'منذ لحظات';
+      const diffMin = Math.floor(diffSec / 60);
+      if (diffMin < 60) return `منذ ${diffMin} دقيقة`;
+      const diffHr = Math.floor(diffMin / 60);
+      if (diffHr < 24) return `منذ ${diffHr} ساعة`;
+      const diffDays = Math.floor(diffHr / 24);
+      if (diffDays === 1) return 'أمس';
+      if (diffDays < 7) return `منذ ${diffDays} أيام`;
+      const diffWeeks = Math.floor(diffDays / 7);
+      if (diffWeeks < 4) return `منذ ${diffWeeks} أسبوع`;
+      return `منذ أكثر من شهر`;
+    }
+
+    function setVisitorsTimeFilter(filter, btn) {
+      currentFilterTime = filter;
+      document.querySelectorAll('.btn-filter-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loadVisitorsDashboard();
+    }
+
+    function loadVisitorsDashboard() {
+      const tbody = document.getElementById('visitorsTableBody');
+      tbody.innerHTML = '';
+      const now = Date.now();
+
+      let onlineCount = 0;
+      let todayCount = 0;
+      let weekCount = 0;
+      let monthCount = 0;
+      let visitedTotalCount = 0;
+
+      const oneDay = 24 * 60 * 60 * 1000;
+      const oneWeek = 7 * oneDay;
+      const oneMonth = 30 * oneDay;
+
+      sortedRoster.forEach(s => {
+        const v = studentVisits[s.id];
+        if (v && v.lastTimestamp) {
+          visitedTotalCount++;
+          const diff = now - v.lastTimestamp;
+          if (diff <= 3 * 60 * 1000) onlineCount++;
+          if (diff <= oneDay) todayCount++;
+          if (diff <= oneWeek) weekCount++;
+          if (diff <= oneMonth) monthCount++;
+        }
+      });
+
+      document.getElementById('countAllFilter').textContent = visitedTotalCount;
+      document.getElementById('countOnlineFilter').textContent = onlineCount;
+      document.getElementById('countTodayFilter').textContent = todayCount;
+      document.getElementById('countWeekFilter').textContent = weekCount;
+      document.getElementById('countMonthFilter').textContent = monthCount;
+      document.getElementById('onlineNowBadge').textContent = onlineCount;
+
+      const filteredList = sortedRoster.filter(s => {
+        const v = studentVisits[s.id];
+        if (!v || !v.lastTimestamp) return currentFilterTime === 'all';
+        const diff = now - v.lastTimestamp;
+        if (currentFilterTime === 'online') return diff <= 3 * 60 * 1000;
+        if (currentFilterTime === 'today') return diff <= oneDay;
+        if (currentFilterTime === 'week') return diff <= oneWeek;
+        if (currentFilterTime === 'month') return diff <= oneMonth;
+        return true;
+      });
+
+      if (filteredList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">لا توجد سجلات زيارة مطابقة لهذه الفترة.</td></tr>`;
+        return;
+      }
+
+      filteredList.forEach((s, idx) => {
+        const v = studentVisits[s.id];
+        const isOnline = v && v.lastTimestamp && (now - v.lastTimestamp <= 3 * 60 * 1000);
+        let statusTag = isOnline 
+          ? `<span class="pulse-online"><span class="pulse-dot"></span> متصل الآن</span>` 
+          : `<span class="offline-tag">غير متصل</span>`;
+
+        let lastDateStr = v ? new Date(v.lastSeen).toLocaleString('ar-YE', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' }) : '—';
+        let timeAgoStr = v ? formatTimeAgo(v.lastTimestamp) : 'لم يسجل دخول';
+        let visitsCountStr = v ? `<span class="token-badge">${v.count} مرة</span>` : '<span style="color:var(--text-muted);">0</span>';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>#${idx + 1}</td>
+          <td><strong>${s.id}</strong></td>
+          <td>${s.name}</td>
+          <td>${s.system}</td>
+          <td>${statusTag}</td>
+          <td><span style="font-size:0.75rem; color:#e5e7eb;">${lastDateStr}</span></td>
+          <td><span style="color:var(--gold-light); font-weight:600; font-size:0.75rem;">${timeAgoStr}</span></td>
+          <td>${visitsCountStr}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function exportVisitorsReportCSV() {
+      let csvContent = "\uFEFFالرقم,الرقم الأكاديمي,اسم المهندس,النظام,حالة الاتصال,تاريخ آخر زيارة,الفترة,إجمالي الزيارات\n";
+      const now = Date.now();
+      sortedRoster.forEach((s, i) => {
+        const v = studentVisits[s.id];
+        const isOnline = v && v.lastTimestamp && (now - v.lastTimestamp <= 3 * 60 * 1000) ? "متصل الآن" : "غير متصل";
+        const lastSeen = v ? new Date(v.lastSeen).toLocaleString('ar-YE') : "لم يسجل بعد";
+        const ago = v ? formatTimeAgo(v.lastTimestamp) : "—";
+        const count = v ? v.count : 0;
+        csvContent += `"${i+1}","${s.id}","${s.name}","${s.system}","${isOnline}","${lastSeen}","${ago}","${count}"\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `تقرير_زيارات_الدفعة_37_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function togglePasswordVisibility(inputId) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const wrapper = input.closest('.password-input-wrapper');
+      const icon = wrapper ? wrapper.querySelector('.btn-toggle-pwd i') : null;
+      if (input.type === "password") {
+        input.type = "text";
+        if (icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+      } else {
+        input.type = "password";
+        if (icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+      }
+    }
+
+    function clearPasswordFields() {
+      document.querySelectorAll('input[type="password"]').forEach(f => f.value = '');
+    }
+
+    function switchAuthMode(mode) {
+      clearPasswordFields();
+      if (mode === 'login') {
+        document.getElementById('gateLoginForm').style.display = 'block';
+        document.getElementById('gateRegisterForm').style.display = 'none';
+        document.getElementById('tabLoginBtn').classList.add('active');
+        document.getElementById('tabRegisterBtn').classList.remove('active');
+      } else {
+        document.getElementById('gateLoginForm').style.display = 'none';
+        document.getElementById('gateRegisterForm').style.display = 'block';
+        document.getElementById('tabLoginBtn').classList.remove('active');
+        document.getElementById('tabRegisterBtn').classList.add('active');
+        const cBox = document.getElementById('gateContactsContainer');
+        if (cBox.children.length === 0) { addContactRow('gateContactsContainer', 'telegram', ''); }
+      }
+    }
+
+    function addContactRow(containerId, initialType = 'telegram', initialVal = '') {
+      const container = document.getElementById(containerId);
+      const row = document.createElement('div');
+      row.className = 'contact-item-row';
+      row.innerHTML = `
+        <select class="contact-type-select">
+          <option value="telegram" ${initialType === 'telegram' ? 'selected' : ''}>تيليجرام (Telegram)</option>
+          <option value="whatsapp" ${initialType === 'whatsapp' ? 'selected' : ''}>واتساب (WhatsApp)</option>
+          <option value="facebook" ${initialType === 'facebook' ? 'selected' : ''}>فيسبوك (Facebook)</option>
+          <option value="instagram" ${initialType === 'instagram' ? 'selected' : ''}>انستجرام (Instagram)</option>
+          <option value="phone" ${initialType === 'phone' ? 'selected' : ''}>اتصال هاتفي (Phone)</option>
+          <option value="email" ${initialType === 'email' ? 'selected' : ''}>بريد إلكتروني (Email)</option>
+        </select>
+        <input type="text" class="contact-val-input" placeholder="أدخل الرقم أو المعرف أو الرابط..." value="${initialVal}" required>
+        <button type="button" class="btn-remove-contact" onclick="this.parentElement.remove()" title="حذف">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      `;
+      container.appendChild(row);
+    }
+
+    function extractContacts(containerId) {
+      const container = document.getElementById(containerId);
+      const rows = container.querySelectorAll('.contact-item-row');
+      const list = [];
+      rows.forEach(r => {
+        const type = r.querySelector('.contact-type-select').value;
+        const val = r.querySelector('.contact-val-input').value.trim();
+        if (val) list.push({ type, val });
+      });
+      return list;
+    }
+
+    function populateContacts(containerId, contactsArray) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      if (!contactsArray || contactsArray.length === 0) {
+        addContactRow(containerId, 'telegram', '');
+      } else {
+        contactsArray.forEach(c => addContactRow(containerId, c.type, c.val));
+      }
+    }
+
+    async function handleGateLogin(e) {
+      e.preventDefault();
+      const enteredId = document.getElementById('gateLoginId').value.trim();
+      const enteredPin = document.getElementById('gateLoginPin').value.trim();
+      const submitBtn = document.getElementById('btnGateLoginSubmit');
+
+      if (enteredPin === ADMIN_MASTER_SECRET) {
+        sessionStorage.setItem('arch37_authenticated_user', 'admin');
+        document.getElementById('gatekeeperScreen').style.display = 'none';
+        clearPasswordFields();
+        updateStudentWelcomeBar();
+        return;
+      }
+
+      const student = sortedRoster.find(s => s.id === enteredId);
+      if (!student) { alert('الرقم الأكاديمي غير مسجل في كشف الدفعة 37!'); return; }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "جاري التحقق سحابياً...";
+
+      await syncWithCloudDatabase();
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = "دخول إلى الأرشيف";
+
+      if (pendingApprovals[enteredId]) {
+        alert('طلب تسجيلك قيد المراجعة والتدقيق حالياً من قبل مدير المنصة.\nتم حفظ ملفك وسيتم تفعيل الدخول فور اعتماده.');
+        return;
+      }
+
+      const proj = projectStore[enteredId];
+      if (!proj || !proj.approved) {
+        alert('لم يتم تسجيل وتعيين كلمة سر لحسابك بعد يا باشمهندس!\nيرجى الانتقال لتبويب "رفع وتأكيد المشروع" لتعيين كلمة السر الخاصة بك وإرسال طلب الاعتماد.');
+        switchAuthMode('register');
+        document.getElementById('gateRegId').value = enteredId;
+        verifyRosterStudent('gateReg');
+        return;
+      }
+
+      if (String(proj.pin) === String(enteredPin)) {
+        sessionStorage.setItem('arch37_authenticated_user', enteredId);
+        recordStudentVisit(enteredId, student.name);
+        document.getElementById('gatekeeperScreen').style.display = 'none';
+        clearPasswordFields();
+        updateStudentWelcomeBar();
+
+        const welcomeKey = `arch37_welcomed_${enteredId}`;
+        const hasBeenWelcomedBefore = localStorage.getItem(welcomeKey);
+
+        if (!hasBeenWelcomedBefore) {
+          localStorage.setItem(welcomeKey, "true");
+          triggerWisdomModal(true);
+        } else {
+          triggerWisdomModal(false);
+        }
+      } else {
+        alert('كلمة السر (PIN) غير صحيحة!\nإذا نسيت كلمة السر، اضغط على "نسيت الرمز السري؟" لاستعادتها.');
+      }
+    }
+
+    function generateSecurityToken() { return `SEC-${Math.floor(10000 + Math.random() * 90000)}`; }
+
+    function openResetPasswordRequestModal() {
+      document.getElementById('resetReqId').value = document.getElementById('gateLoginId').value.trim();
+      document.getElementById('resetAutoToken').value = generateSecurityToken();
+      openModal('resetReqModal');
+    }
+
+    async function handleSendResetRequest(e) {
+      e.preventDefault();
+      const id = document.getElementById('resetReqId').value.trim();
+      const note = document.getElementById('resetReqNote').value.trim();
+      const token = document.getElementById('resetAutoToken').value.trim();
+      const btn = document.getElementById('btnSubmitResetReq');
+
+      const student = sortedRoster.find(s => s.id === id);
+      if (!student) { alert('الرقم الأكاديمي غير مسجل في الدفعة!'); return; }
+
+      btn.disabled = true;
+      btn.textContent = "جاري إرسال الطلب وإشعار المدير...";
+
+      const proj = projectStore[id] || {};
+      await sendPostToCloud({
+        action: "requestPinReset",
+        studentId: id,
+        studentName: student.name,
+        system: student.system,
+        projectTitle: proj.title || "مشروع تخرج",
+        token: token,
+        note: note
+      });
+
+      btn.disabled = false;
+      btn.textContent = "إرسال طلب الاستعادة للمدير";
+      closeModal('resetReqModal');
+      alert(`تم إرسال طلب استعادة الرمز للمهندس ${student.name} بنجاح!\nرمز التتبع الأمني: [ ${token} ]`);
+      syncWithCloudDatabase();
+    }
+
+    function openCheckResetStatusModal() {
+      document.getElementById('checkIdInput').value = document.getElementById('gateLoginId').value.trim();
+      document.getElementById('checkTokenInput').value = '';
+      document.getElementById('checkResultDisplay').style.display = 'none';
+      openModal('checkResetModal');
+    }
+
+    async function handleCheckResetStatus(e) {
+      e.preventDefault();
+      const id = document.getElementById('checkIdInput').value.trim();
+      const token = document.getElementById('checkTokenInput').value.trim();
+      const display = document.getElementById('checkResultDisplay');
+
+      await syncWithCloudDatabase();
+      const req = resetRequests[id];
+
+      if (!req) {
+        display.style.display = 'block';
+        display.innerHTML = `<span style="color:var(--danger); font-size:0.82rem;"><i class="fa-solid fa-circle-xmark"></i> لا يوجد طلب استعادة مسجل لهذا الرقم.</span>`;
+        return;
+      }
+
+      if (req.token !== token) {
+        display.style.display = 'block';
+        display.innerHTML = `<span style="color:var(--danger); font-size:0.82rem;"><i class="fa-solid fa-triangle-exclamation"></i> رمز التتبع الأمني غير مطابق!</span>`;
+        return;
+      }
+
+      display.style.display = 'block';
+      if (req.status === 'approved' && req.approvedNewPin) {
+        display.innerHTML = `
+          <div style="color:var(--success); font-weight:700; margin-bottom:0.3rem;">
+            <i class="fa-solid fa-check-circle"></i> تم اعتماد الرمز السري من قبل المدير!
+          </div>
+          <div style="font-size:0.9rem; color:#fff;">
+            الرمز السري الجديد: <span class="pin-pill" style="font-size:1.05rem;">${req.approvedNewPin}</span>
+          </div>
+        `;
+      } else {
+        display.innerHTML = `<div style="color:var(--warning); font-size:0.85rem;"><i class="fa-solid fa-clock-rotate-left"></i> الطلب قيد المراجعة لدى المدير.</div>`;
+      }
+    }
+
+    function handleGateMainFile(e) {
+      const file = e.target.files[0];
+      if (file) {
+        document.getElementById('gateSelectedFileText').textContent = `ملف البرمجة المختار: ${file.name} (${(file.size / (1024*1024)).toFixed(2)} MB)`;
+      }
+    }
+
+    function handleGateCoverFile(e) {
+      const file = e.target.files[0];
+      if (file) {
+        document.getElementById('gateSelectedCoverText').textContent = `صورة غلاف البرمجة: ${file.name} (${(file.size / (1024*1024)).toFixed(2)} MB)`;
+      }
+    }
+
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleGateRegister(e) {
+      e.preventDefault();
+      const id = document.getElementById('gateRegId').value.trim();
+      const pin = document.getElementById('gateRegPin').value.trim();
+      const title = document.getElementById('gateRegTitle').value.trim();
+      const desc = document.getElementById('gateRegDesc').value.trim();
+      const allowShare = document.getElementById('gateRegAllowShare').value === "true";
+      const contacts = extractContacts('gateContactsContainer');
+      const submitBtn = document.getElementById('btnSubmitGateReg');
+      
+      const progressBox = document.getElementById('gateProgressBox');
+      const progressBar = document.getElementById('gateProgressBar');
+      const progressStatus = document.getElementById('gateProgressStatus');
+      const progressPercent = document.getElementById('gateProgressPercent');
+      const progressBytes = document.getElementById('gateProgressBytes');
+      const progressTime = document.getElementById('gateProgressTime');
+
+      const student = sortedRoster.find(s => s.id === id);
+      if (!student) { alert('يرجى كتابة رقم أكاديمي صحيح ومطابق للدفعة.'); return; }
+      if (projectStore[id] && projectStore[id].approved) { alert('هذا الحساب معتمد مسبقاً! يرجى تسجيل الدخول.'); switchAuthMode('login'); return; }
+
+      const fileInput = document.getElementById('gateFileInput');
+      const coverInput = document.getElementById('gateCoverInput');
+      const file = fileInput.files.length ? fileInput.files[0] : null;
+      const coverFile = coverInput.files.length ? coverInput.files[0] : null;
+
+      const existingProject = projectStore[id] || pendingApprovals[id];
+      const hasExistingPdf = existingProject && existingProject.fileUrl;
+
+      if (!file && !coverFile && !hasExistingPdf) {
+        alert('يرجى رفع ملف البرمجة (PDF)، أو صورة غلاف البرمجة لإتمام التسجيل بنجاح.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      progressBox.style.display = 'block';
+      progressBar.style.width = '2%';
+      progressPercent.textContent = '2%';
+      progressStatus.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> جاري تجهيز المرفقات وتشفيرها للرفع...';
+      
+      const totalSize = (file ? file.size : 0) + (coverFile ? coverFile.size : 0);
+      progressBytes.textContent = `0.0 MB / ${(totalSize / (1024*1024)).toFixed(2)} MB`;
+      progressTime.textContent = 'بدء الاتصال...';
+
+      try {
+        let base64Data = null;
+        let fileName = null;
+        let mimeType = null;
+
+        if (file) {
+          base64Data = await readFileAsBase64(file);
+          fileName = file.name;
+          mimeType = file.type || "application/pdf";
+        }
+
+        let base64Cover = null;
+        let coverName = null;
+        let coverType = null;
+
+        if (coverFile) {
+          base64Cover = await readFileAsBase64(coverFile);
+          coverName = coverFile.name;
+          coverType = coverFile.type || "image/jpeg";
+        }
+
+        progressStatus.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> جاري الرفع والتنظيم داخل مجلد الطالب في Google Drive...';
+
+       await sendPayloadWithProgress({
+    action: "updateProject",
+    studentId: id,
+    studentName: student ? student.name : "",
+    system: student ? student.system : "عام",
+    title: title,
+    desc: desc,
+    pin: pin,
+    allowShare: allowShare,
+    contacts: contacts,
+    fileName: fileName,
+    mimeType: mimeType,
+    base64File: base64Data,
+    coverFileName: coverFileName,
+    coverMimeType: coverMimeType,
+    base64Cover: base64Cover,
+    // --- أضف هذه السطور الخاصة بالصورة الشخصية هنا ---
+    avatarFileName: avatarFileName,
+    avatarMimeType: avatarMimeType,
+    base64Avatar: base64Avatar
+    // ------------------------------------------------
+  }, (percent, loaded, total) => {
+    progressBar.style.width = `${percent}%`;
+    progressPercent.textContent = `${percent}%`;
+    progressBytes.textContent = `${(loaded / (1024*1024)).toFixed(2)} MB / ${(total / (1024*1024)).toFixed(2)} MB`;
+  });
+        progressBar.style.width = '100%';
+        progressPercent.textContent = '100%';
+        progressStatus.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--success);"></i> تم الحفظ داخل مجلد الطالب بنجاح!';
+
+        alert(`تم تسجيل وتأكيد مشروعك يا باشمهندس ${student.name} بنجاح!\nتم تعيين كلمة السر الخاصة بك وتخزين المرفقات داخل مجلدك بانتظار موافقة المدير.`);
+        switchAuthMode('login');
+        document.getElementById('gateRegisterForm').reset();
+        await syncWithCloudDatabase();
+      } catch (err) {
+        alert('حدث خطأ أثناء الاتصال بالخادم، يرجى المحاولة ثانية.');
+      } finally {
+        submitBtn.disabled = false;
+        setTimeout(() => { progressBox.style.display = 'none'; }, 1500);
+      }
+    }
+
+    function verifyRosterStudent(type) {
+      const isReg = type === 'gateReg';
+      const idInput = isReg ? document.getElementById('gateRegId') : document.getElementById('editId');
+      const nameInput = isReg ? document.getElementById('gateRegName') : document.getElementById('editName');
+      const notice = isReg ? document.getElementById('gateRegIdNotice') : document.getElementById('editIdNotice');
+      const id = idInput.value.trim();
+      const found = sortedRoster.find(s => s.id === id);
+
+      const preUploadBox = document.getElementById('gateAdminPreUploadedNotice');
+
+      if (found) {
+        nameInput.value = found.name;
+        notice.textContent = `تم التحقق: المهندس ${found.name} (${found.system})`;
+        notice.style.color = "var(--gold)";
+
+        if (isReg) {
+          const existingProject = projectStore[id] || pendingApprovals[id];
+          if (existingProject && existingProject.fileUrl) {
+            if (preUploadBox) preUploadBox.style.display = 'flex';
+            if (existingProject.title) document.getElementById('gateRegTitle').value = existingProject.title;
+          } else {
+            if (preUploadBox) preUploadBox.style.display = 'none';
+          }
+        }
+
+        if (type === 'edit') {
+          const currentProject = projectStore[id] || pendingApprovals[id];
+          if (currentProject) {
+            document.getElementById('editTitle').value = currentProject.title || '';
+            document.getElementById('editDesc').value = currentProject.desc || '';
+            document.getElementById('editAllowShare').value = currentProject.allowShare ? "true" : "false";
+            populateContacts('editContactsContainer', currentProject.contacts);
+            document.getElementById('editFileNameDisplay').textContent = currentProject.fileName ? `الملف الحالي: ${currentProject.fileName}` : '';
+          }
+        }
+      } else {
+        nameInput.value = '';
+        notice.textContent = "الرقم الأكاديمي غير مسجل في كشف الدفعة 37!";
+        notice.style.color = "var(--danger)";
+        if (preUploadBox) preUploadBox.style.display = 'none';
+      }
+    }
+
+    function handleEditFile(e) {
+      const file = e.target.files[0];
+      if (file) { document.getElementById('editFileNameDisplay').textContent = `ملف البرمجة المختار للاستبدال: ${file.name} (${(file.size / (1024*1024)).toFixed(2)} MB)`; }
+    }
+
+    function handleEditCoverFile(e) {
+      const file = e.target.files[0];
+      if (file) { document.getElementById('editCoverNameDisplay').textContent = `صورة الغلاف: ${file.name} (${(file.size / (1024*1024)).toFixed(2)} MB)`; }
+    }
+
+    async function handleEditProject(e) {
+  e.preventDefault();
+  const id = document.getElementById('editId').value.trim();
+  const pin = document.getElementById('editPin').value.trim();
+  const title = document.getElementById('editTitle').value.trim();
+  const desc = document.getElementById('editDesc').value.trim();
+  const allowShare = document.getElementById('editAllowShare').value === "true";
+  const contacts = extractContacts('editContactsContainer');
+  const submitBtn = document.getElementById('btnSubmitEdit');
+
+  const progressBox = document.getElementById('editProgressBox');
+  const progressBar = document.getElementById('editProgressBar');
+  const progressPercent = document.getElementById('editProgressPercent');
+  const progressBytes = document.getElementById('editProgressBytes');
+
+  await syncWithCloudDatabase();
+
+  const activeTarget = projectStore[id] || pendingApprovals[id];
+  if (!activeTarget) { alert('لا يوجد مشروع مسجل لهذا الرقم!'); return; }
+  if (String(activeTarget.pin) !== String(pin)) { alert('كلمة السر (PIN) الخاصة بالمشروع غير صحيحة!'); return; }
+
+  submitBtn.disabled = true;
+  progressBox.style.display = 'block';
+  progressBar.style.width = '5%';
+  progressPercent.textContent = '5%';
+
+  const fileInput = document.getElementById('editFileInput');
+  let base64Data = null;
+  let fileName = null;
+  let mimeType = null;
+
+  if (fileInput.files && fileInput.files.length > 0) {
+    const file = fileInput.files[0];
+    fileName = file.name;
+    mimeType = file.type || "application/pdf";
+    base64Data = await readFileAsBase64(file);
+  }
+
+ const avatarInput = document.getElementById('editAvatarInput');
+let base64Avatar = editAvatarBase64 || null;
+let avatarFileName = null;
+let avatarMimeType = editAvatarMime || null;
+
+if (avatarInput.files && avatarInput.files.length > 0) {
+  const avFile = avatarInput.files[0];
+  avatarFileName = avFile.name;
+  avatarMimeType = avFile.type || "image/jpeg";
+  base64Avatar = await readFileAsBase64(avFile);
+}
+
+  const student = sortedRoster.find(s => s.id === id);
+
+await sendPayloadWithProgress({
+    action: "updateProject",
+    studentId: id,
+    studentName: student ? student.name : "",
+    system: student ? student.system : "عام",
+    title: title,
+    desc: desc,
+    pin: pin,
+    allowShare: allowShare,
+    contacts: contacts,
+    fileName: fileName,
+    mimeType: mimeType,
+    base64File: base64Data,
+    coverFileName: coverFileName,
+    coverMimeType: coverMimeType,
+    base64Cover: base64Cover,
+    // --- أضف هذه السطور الخاصة بالصورة الشخصية هنا ---
+    avatarFileName: avatarFileName,
+    avatarMimeType: avatarMimeType,
+    base64Avatar: base64Avatar
+    // ------------------------------------------------
+  }, (percent, loaded, total) => {
+    progressBar.style.width = `${percent}%`;
+    progressPercent.textContent = `${percent}%`;
+    progressBytes.textContent = `${(loaded / (1024*1024)).toFixed(2)} MB / ${(total / (1024*1024)).toFixed(2)} MB`;
+  });
+  function updateStudentWelcomeBar() {
+  progressBar.style.width = '100%';
+  progressPercent.textContent = '100%';
+  alert('تم تحديث بيانات مشروعك واستبدال المرفقات داخل مجلدك بنجاح!');
+  submitBtn.disabled = false;
+  progressBox.style.display = 'none';
+  closeModal('editModal');
+  await syncWithCloudDatabase();
+}
+
+    function copyProjectLink(id) {
+      const p = projectStore[id];
+      if (!p) return;
+      if (!p.allowShare) { alert('عذراً: صاحب المشروع فضل إبقاء البرمجة للمعاينة داخل الموقع فقط.'); return; }
+      const targetUrl = p.fileUrl || window.location.href;
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(targetUrl).then(() => alert('تم نسخ رابط ملف البرمجة بنجاح!')).catch(() => fallbackCopy(targetUrl));
+      } else { fallbackCopy(targetUrl); }
+    }
+
+    function fallbackCopy(text) {
+      const tempInput = document.createElement("input");
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+      alert('تم نسخ رابط ملف البرمجة بنجاح!');
+    }
+
+    async function handleSendFeedback(e) {
+      e.preventDefault();
+      const sender = document.getElementById('feedbackSender').value.trim() || "مهندس (مجهول)";
+      const text = document.getElementById('feedbackText').value.trim();
+
+      await sendPostToCloud({ action: "sendFeedback", sender: sender, text: text });
+      closeModal('feedbackModal');
+      document.getElementById('feedbackForm').reset();
+      alert('شكراً لك! تم إرسال اقتراحك وحفظه سحابياً.');
+      syncWithCloudDatabase();
+    }
+
+    function renderFeedbackList() {
+      const container = document.getElementById('feedbackListContainer');
+      const badge = document.getElementById('feedbackBadge');
+      badge.textContent = feedbackList.length;
+      container.innerHTML = '';
+      if (feedbackList.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">لا توجد اقتراحات جديدة.</div>';
+        return;
+      }
+      feedbackList.forEach(item => {
+        const div = document.createElement('div');
+        div.style.cssText = "background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.8rem; margin-bottom: 0.6rem;";
+        div.innerHTML = `
+          <div style="display: flex; justify-content: space-between; color: var(--gold); font-size: 0.82rem; font-weight: 700; margin-bottom: 0.3rem;">
+            <span><i class="fa-solid fa-user-pen"></i> ${item.sender || 'مجهول'}</span>
+            <span style="color: var(--text-muted); font-size: 0.75rem;">${item.date ? new Date(item.date).toLocaleDateString('ar-YE') : ''}</span>
+          </div>
+          <p style="font-size: 0.82rem; color: #e5e7eb; line-height: 1.5;">${item.text}</p>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function generateContactLink(type, val) {
+      if (!val) return "#";
+      const cleanVal = val.replace(/[^0-9]/g, '');
+      const cleanUser = val.replace('@', '').trim();
+      if (type === 'whatsapp') return `https://wa.me/${cleanVal.startsWith('967') ? cleanVal : '967' + cleanVal}`;
+      if (type === 'telegram') return `https://t.me/${cleanUser}`;
+      if (type === 'facebook') return val.startsWith('http') ? val : `https://facebook.com/${cleanUser}`;
+      if (type === 'instagram') return val.startsWith('http') ? val : `https://instagram.com/${cleanUser}`;
+      if (type === 'phone') return `tel:${val}`;
+      if (type === 'email') return `mailto:${val}`;
+      return "#";
+    }
+
+    function getContactIconClass(type) {
+      if (type === 'whatsapp') return 'fa-brands fa-whatsapp icon-whatsapp';
+      if (type === 'telegram') return 'fa-brands fa-telegram icon-telegram';
+      if (type === 'facebook') return 'fa-brands fa-facebook icon-facebook';
+      if (type === 'instagram') return 'fa-brands fa-instagram icon-instagram';
+      if (type === 'phone') return 'fa-solid fa-phone icon-phone';
+      if (type === 'email') return 'fa-solid fa-envelope icon-email';
+      return 'fa-solid fa-link';
+    }
+
+    // منطق العرض في الصفحة الرئيسية: فصل المشاريع المعتمدة عن المسودات
+    function renderStudentGrid(list) {
+      const grid = document.getElementById('studentsGrid');
+      const stats = document.getElementById('statsLabel');
+      grid.innerHTML = '';
+
+      const approvedCount = Object.values(projectStore).filter(p => p.approved === true).length;
+      stats.textContent = `المشاريع المعتمدة: ${approvedCount} من أصل 92 مهندساً (متصل بالسحابة ☁️)`;
+
+      if (list.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">
+            <i class="fa-regular fa-folder-open" style="font-size: 2.5rem; margin-bottom: 0.8rem; color: var(--gold);"></i>
+            <p>لا توجد نتائج مطابقة لبحثك.</p>
+          </div>
+        `;
+        return;
+      }
+
+      list.forEach(student => {
+        const p = projectStore[student.id];
+        const isPending = !!pendingApprovals[student.id];
+        const hasApproved = p && (p.approved === true);
+        const hasDraftAdmin = p && (p.isDraftAdmin === true) && !hasApproved;
+
+        const card = document.createElement('div');
+        card.className = `card ${hasApproved ? 'has-approved' : (isPending ? 'is-pending' : (hasDraftAdmin ? 'is-draft-admin' : ''))}`;
+        
+        let statusTag = '';
+        let actionsHtml = '';
+
+        if (hasApproved) {
+          statusTag = '<span class="status-badge status-active"><i class="fa-solid fa-check-double"></i> تم الاعتماد</span>';
+          let contactsHtml = '';
+          if (p.contacts && p.contacts.length > 0) {
+            contactsHtml = `<div class="contacts-row">` + p.contacts.map(c => `
+              <a href="${generateContactLink(c.type, c.val)}" target="_blank" rel="noopener noreferrer" class="btn-contact-icon" title="${c.type}: ${c.val}">
+                <i class="${getContactIconClass(c.type)}"></i>
+              </a>
+            `).join('') + `</div>`;
+          }
+
+          const shareBtnHtml = p.allowShare ? `
+            <button class="btn-action-share" onclick="copyProjectLink('${student.id}')" title="نسخ رابط البرمجة المعمارية">
+              <i class="fa-regular fa-copy"></i> نسخ
+            </button>
+          ` : `
+            <span class="btn-share-locked" title="محمي">
+              <i class="fa-solid fa-lock"></i> محمي
+            </span>
+          `;
+
+          actionsHtml = `
+            <div class="card-actions">
+              <button class="btn-action-view" onclick="viewProjectDetails('${student.id}')">
+                <i class="fa-solid fa-book-open"></i> استعراض
+              </button>
+              ${shareBtnHtml}
+              ${contactsHtml}
+            </div>
+          `;
+        } else if (isPending) {
+          statusTag = '<span class="status-badge status-pending"><i class="fa-solid fa-hourglass-half"></i> قيد المراجعة</span>';
+          actionsHtml = `
+            <div style="text-align: center; padding: 0.5rem; background: rgba(245,158,11,0.08); border-radius: 8px; color: var(--warning); font-size: 0.8rem;">
+              <i class="fa-solid fa-clock"></i> تم الرفع داخل المجلد، بانتظار موافقة المدير
+            </div>
+          `;
+        } else if (hasDraftAdmin) {
+          statusTag = '<span class="status-badge status-draft"><i class="fa-solid fa-file-shield"></i> تم تجهيز الملف</span>';
+          actionsHtml = `
+            <div style="text-align: center; padding: 0.5rem; background: rgba(59,130,246,0.08); border-radius: 8px; color: #60a5fa; font-size: 0.8rem;">
+              <i class="fa-solid fa-user-pen"></i> تم إيداع الملف | بانتظار تسجيل الطالب
+            </div>
+          `;
+        } else {
+          statusTag = '<span class="status-badge status-waiting"><i class="fa-regular fa-clock"></i> بانتظار الرفع</span>';
+          actionsHtml = `
+            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.03); border-radius: 8px; color: var(--text-muted); font-size: 0.8rem;">
+              <i class="fa-solid fa-file-circle-question"></i> لم يتم رفع المشروع بعد
+            </div>
+          `;
+        }
+
+        const projectTitle = hasApproved ? p.title : (isPending ? pendingApprovals[student.id].title : (hasDraftAdmin ? p.title : 'لم تسجل البرمجة بعد'));
+        const projectDesc = hasApproved ? p.desc : (isPending ? pendingApprovals[student.id].desc : (hasDraftAdmin ? 'تم حفظ ملف البرمجة، بانتظار استكمال الطالب لبياناته.' : 'يقوم المهندس بالتسجيل ورفع ملفه عند الدخول للمنصة.'));
+
+        card.innerHTML = `
+          <div>
+            <div class="card-head">
+              <span class="badge-id">${student.id}</span>
+              ${statusTag}
+            </div>
+            <div class="student-name">${student.name}</div>
+            <div class="student-sub">نظام: ${student.system} • الترتيب: #${student.num}</div>
+
+            <div class="project-box">
+              <h4>${projectTitle}</h4>
+              <p>${projectDesc}</p>
+            </div>
+          </div>
+          ${actionsHtml}
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function handleSearch() {
+      const q = document.getElementById('filterInput').value.trim().toLowerCase();
+      const filtered = sortedRoster.filter(s => {
+        const p = projectStore[s.id];
+        const matchTitle = p && p.title && p.title.toLowerCase().includes(q);
+        return s.id.includes(q) || s.name.toLowerCase().includes(q) || matchTitle;
+      });
+      renderStudentGrid(filtered);
+    }
+
+    function viewProjectDetails(id) {
+      const student = sortedRoster.find(s => s.id === id);
+      const proj = projectStore[id];
+      if (!student || !proj || !proj.approved) return;
+
+      document.getElementById('viewModalStudent').textContent = `المهندس: ${student.name}`;
+      document.getElementById('viewModalTitle').textContent = proj.title;
+      document.getElementById('viewModalId').textContent = `الرقم الأكاديمي: ${student.id} | نظام: ${student.system}`;
+      document.getElementById('viewModalDesc').textContent = proj.desc || 'دراسة وبرمجة معمارية متكاملة لمشروع التخرج.';
+      document.getElementById('viewFileNameDisplay').textContent = proj.fileName || 'ملف البرمجة المعتمد';
+
+      const isImg = isImageFile(proj.fileName, proj.fileUrl);
+      const iconEl = document.getElementById('viewFileIcon');
+      if (iconEl) iconEl.className = isImg ? "fa-regular fa-image" : "fa-regular fa-file-pdf";
+
+      const shareSlot = document.getElementById('viewModalShareSlot');
+      if (proj.allowShare) {
+        shareSlot.innerHTML = `
+          <button class="btn-top btn-outline" style="font-size: 0.75rem; padding: 0.35rem 0.65rem;" onclick="copyProjectLink('${student.id}')">
+            <i class="fa-regular fa-copy"></i> نسخ
+          </button>
+        `;
+      } else {
+        shareSlot.innerHTML = `<span style="font-size: 0.72rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 0.35rem 0.5rem; border-radius: 6px;"><i class="fa-solid fa-lock"></i> محمي</span>`;
+      }
+
+      const contactsRow = document.getElementById('viewModalContactsRow');
+      contactsRow.innerHTML = '';
+      if (proj.contacts && proj.contacts.length > 0) {
+        proj.contacts.forEach(c => {
+          const a = document.createElement('a');
+          a.href = generateContactLink(c.type, c.val);
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          a.className = "btn-contact-icon";
+          a.title = `${c.type}: ${c.val}`;
+          a.innerHTML = `<i class="${getContactIconClass(c.type)}"></i>`;
+          contactsRow.appendChild(a);
+        });
+      }
+
+      let docTargetUrl = proj.fileUrl || '';
+      if (docTargetUrl.includes("drive.google.com") && (docTargetUrl.includes("/view") || docTargetUrl.includes("/folders/"))) {
+        docTargetUrl = docTargetUrl.replace("/view", "/preview");
+      }
+
+      const container = document.getElementById('mediaViewerContainer');
+      if (isImg) {
+        container.innerHTML = `<img class="image-preview-frame" src="${docTargetUrl}" alt="مشروع التخرج">`;
+      } else {
+        container.innerHTML = `<iframe class="pdf-viewer-frame" src="${docTargetUrl}"></iframe>`;
+      }
+
+      document.getElementById('openNewTabDocBtn').href = docTargetUrl;
+      openModal('viewModal');
+    }
+
+    async function verifyAdminLogin() {
+      const pass = document.getElementById('adminMasterPass').value.trim();
+      if (pass === ADMIN_MASTER_SECRET) {
+        sessionStorage.setItem('arch37_authenticated_user', 'admin');
+        document.getElementById('gatekeeperScreen').style.display = 'none';
+        closeModal('adminLoginModal');
+        clearPasswordFields();
+        updateStudentWelcomeBar();
+        
+        document.getElementById('adminCustomScriptUrlInput').value = APPS_SCRIPT_URL;
+        loadLiveSourceCodeToEditor();
+
+        await syncWithCloudDatabase();
+        loadApprovalsDashboard();
+        loadDraftAdminDashboard();
+        loadVisitorsDashboard();
+        loadDriveRosterDashboard();
+        loadResetRequestsDashboard();
+        loadAdminApprovedProjects();
+        populateAdminUploadSelect();
+        renderFeedbackList();
+        openModal('adminDashboardModal');
+      } else { alert('رمز المدير السري غير صحيح!'); }
+    }
+
+    function switchAdminTab(tabId, btn) {
+      document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).style.display = 'block';
+      btn.classList.add('active');
+      if (tabId === 'sourceCodeEditorTab') {
+        loadLiveSourceCodeToEditor();
+      }
+    }
+
+    function loadApprovalsDashboard() {
+      const tbody = document.getElementById('approvalsTableBody');
+      tbody.innerHTML = '';
+      const pendingKeys = Object.keys(pendingApprovals);
+      updateBadges();
+
+      if (pendingKeys.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">لا توجد طلبات معلقة حالياً.</td></tr>`;
+        return;
+      }
+
+      pendingKeys.forEach(id => {
+        const item = pendingApprovals[id];
+        const isImg = isImageFile(item.fileName, item.fileUrl);
+        const tr = document.createElement('tr');
+        tr.id = `approval-row-${id}`;
+        tr.innerHTML = `
+          <td><strong>${id}</strong></td>
+          <td>${item.name}</td>
+          <td>${item.title}</td>
+          <td>
+            <button onclick="previewPendingFile('${id}')" class="btn-top btn-gold" style="padding: 0.3rem 0.55rem; font-size: 0.75rem;">
+              <i class="${isImg ? 'fa-regular fa-image' : 'fa-solid fa-file-pdf'}"></i> معاينة المرفق
+            </button>
+          </td>
+          <td>${item.allowShare ? '<span style="color:var(--success);">مسموح</span>' : '<span style="color:var(--danger);">معاينة فقط</span>'}</td>
+          <td><span class="pin-pill">${item.pin}</span></td>
+          <td>
+            <button onclick="executeApprovalDecision('${id}', 'approve')" class="btn-top btn-gold" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; margin-left: 4px;">
+              <i class="fa-solid fa-check"></i> قبول
+            </button>
+            <button onclick="executeApprovalDecision('${id}', 'reject')" style="background: none; border: 1px solid var(--danger); color: var(--danger); padding: 0.3rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem;">
+              رفض
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // جدول المسودات المرفوعة من المدير بدون تسجيل وبدون اعتماد
+    function loadDraftAdminDashboard() {
+      const tbody = document.getElementById('draftAdminTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const draftIds = Object.keys(projectStore).filter(id => projectStore[id].isDraftAdmin === true && !projectStore[id].approved);
+      updateBadges();
+
+      if (draftIds.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">لا توجد ملفات مرفوعة كمسودات حالياً.</td></tr>`;
+        return;
+      }
+
+      draftIds.forEach(id => {
+        const s = sortedRoster.find(item => item.id === id) || { name: "مهندس", system: "" };
+        const p = projectStore[id];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${id}</strong></td>
+          <td>${s.name}</td>
+          <td>${p.title || 'مشروع تخرج'}</td>
+          <td><span style="color:var(--warning); font-size:0.75rem;">لم يُعيّن (بانتظار الطالب)</span></td>
+          <td><a href="${p.fileUrl || '#'}" target="_blank" class="drive-link-badge"><i class="fa-brands fa-google-drive"></i> فتح الملف</a></td>
+          <td><span class="status-badge status-draft">مسودة بانتظار الطالب</span></td>
+          <td>
+            <button onclick="adminResetStudentToZero('${id}')" class="btn-top" style="background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: #fca5a5; padding: 0.25rem 0.5rem; font-size: 0.72rem;" title="حذف المسودة"><i class="fa-solid fa-trash"></i> حذف</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function previewPendingFile(id) {
+      const item = pendingApprovals[id];
+      if (!item || !item.fileUrl) { alert('لا يوجد ملف مرفق لهذا الطلب بعد.'); return; }
+
+      document.getElementById('viewModalStudent').textContent = `المهندس: ${item.name} (طلب قيد المراجعة)`;
+      document.getElementById('viewModalTitle').textContent = item.title;
+      document.getElementById('viewModalId').textContent = `الرقم الأكاديمي: ${id} | نظام: ${item.system}`;
+      document.getElementById('viewModalDesc').textContent = item.desc || 'ملف مشروع الطالب قيد المراجعة والاعتماد.';
+      document.getElementById('viewFileNameDisplay').textContent = item.fileName || 'ملف المشروع';
+
+      const isImg = isImageFile(item.fileName, item.fileUrl);
+      const iconEl = document.getElementById('viewFileIcon');
+      if (iconEl) iconEl.className = isImg ? "fa-regular fa-image" : "fa-regular fa-file-pdf";
+
+      document.getElementById('viewModalShareSlot').innerHTML = '';
+      document.getElementById('viewModalContactsRow').innerHTML = '';
+
+      let docTargetUrl = item.fileUrl;
+      if (docTargetUrl.includes("drive.google.com") && (docTargetUrl.includes("/view") || docTargetUrl.includes("/folders/"))) {
+        docTargetUrl = docTargetUrl.replace("/view", "/preview");
+      }
+
+      const container = document.getElementById('mediaViewerContainer');
+      if (isImg) {
+        container.innerHTML = `<img class="image-preview-frame" src="${docTargetUrl}" alt="مشروع الطالب">`;
+      } else {
+        container.innerHTML = `<iframe class="pdf-viewer-frame" src="${docTargetUrl}"></iframe>`;
+      }
+
+      document.getElementById('openNewTabDocBtn').href = docTargetUrl;
+      openModal('viewModal');
+    }
+
+    async function executeApprovalDecision(id, decision) {
+      const item = pendingApprovals[id];
+      if (!item) return;
+
+      if (decision === 'reject' && !confirm(`هل أنت متأكد من رفض طلب المهندس ${item.name}؟`)) {
+        return;
+      }
+
+      delete pendingApprovals[id];
+      localStorage.setItem('arch37_pending_approvals_v12', JSON.stringify(pendingApprovals));
+
+      if (decision === 'approve') {
+        item.approved = true;
+        item.isDraftAdmin = false; // تفعيل رسمي وإلغاء صفة المسودة
+        projectStore[id] = item;
+        localStorage.setItem('arch37_v12_db', JSON.stringify(projectStore));
+      }
+
+      loadApprovalsDashboard();
+      loadDraftAdminDashboard();
+      loadAdminApprovedProjects();
+      loadDriveRosterDashboard();
+      renderStudentGrid(sortedRoster);
+      updateBadges();
+
+      await sendPostToCloud({
+        action: "decideApproval",
+        studentId: id,
+        decision: decision
+      });
+
+      alert(decision === 'approve' ? `تم اعتماد مشروع المهندس ${item.name} ونشره بالصفحة الرئيسية بنجاح!` : `تم رفض الطلب وإزالته فوراً.`);
+      await syncWithCloudDatabase();
+      loadApprovalsDashboard();
+      loadDraftAdminDashboard();
+      loadAdminApprovedProjects();
+      loadDriveRosterDashboard();
+    }
+
+    function loadDriveRosterDashboard() {
+      const tbody = document.getElementById('driveRosterTableBody');
+      tbody.innerHTML = '';
+      sortedRoster.forEach(student => {
+        const p = projectStore[student.id];
+        const isPending = !!pendingApprovals[student.id];
+        const hasApproved = p && (p.approved === true);
+        const hasDraftFile = p && (p.isDraftAdmin === true) && !hasApproved;
+
+        let pinDisplay = '<span style="color:var(--text-muted); font-size:0.72rem;">غير مسجل</span>';
+        let fileLinkDisplay = '<span style="color:var(--text-muted); font-size:0.72rem;">لا يوجد</span>';
+
+        if (hasApproved) {
+          pinDisplay = `<span class="pin-pill">${p.pin}</span>`;
+          if (p.fileUrl) {
+            fileLinkDisplay = `
+              <div style="display:flex; align-items:center; gap:0.25rem;">
+                <a href="${p.fileUrl}" target="_blank" class="drive-link-badge"><i class="fa-brands fa-google-drive"></i> الملف</a>
+                <button onclick="adminQuickEditFileLink('${student.id}')" style="background:none; border:none; color:var(--gold); cursor:pointer;"><i class="fa-solid fa-pen-clip"></i></button>
+              </div>
+            `;
+          }
+        } else if (isPending) {
+          pinDisplay = `<span class="pin-pill">${pendingApprovals[student.id].pin}</span>`;
+          fileLinkDisplay = `<a href="${pendingApprovals[student.id].fileUrl || '#'}" target="_blank" class="drive-link-badge"><i class="fa-solid fa-file-pdf"></i> معلق</a>`;
+        } else if (hasDraftFile) {
+          pinDisplay = '<span style="color:var(--warning); font-size:0.7rem;">غير معين (مسودة)</span>';
+          fileLinkDisplay = `<a href="${p.fileUrl}" target="_blank" class="drive-link-badge" style="background:rgba(59,130,246,0.1); border-color:var(--info); color:#60a5fa;"><i class="fa-solid fa-file-shield"></i> مسودة</a>`;
+        } else {
+          fileLinkDisplay = `<button onclick="adminQuickEditFileLink('${student.id}')" class="btn-top btn-outline" style="padding:0.2rem 0.4rem; font-size:0.7rem;"><i class="fa-solid fa-plus"></i> ربط</button>`;
+        }
+
+        const studentDriveSearchUrl = `https://drive.google.com/drive/search?q=${encodeURIComponent(student.id)}`;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>#${student.num}</td>
+          <td><strong>${student.id}</strong></td>
+          <td>${student.name}</td>
+          <td>${student.system}</td>
+          <td>${pinDisplay}</td>
+          <td>${fileLinkDisplay}</td>
+          <td><a href="${studentDriveSearchUrl}" target="_blank" class="btn-top btn-outline" style="padding:0.2rem 0.5rem; font-size:0.72rem;"><i class="fa-brands fa-google-drive" style="color:var(--gold);"></i> المجلد</a></td>
+          <td>
+            <button onclick="openAdminUploadModalForStudent('${student.id}')" class="btn-top btn-gold" style="padding:0.2rem 0.45rem; font-size:0.72rem;" title="رفع ملف للطالب كمسودة"><i class="fa-solid fa-cloud-arrow-up"></i> رفع</button>
+            <button onclick="adminOpenEditStudent('${student.id}')" class="btn-top btn-outline" style="padding:0.2rem 0.45rem; font-size:0.72rem;" title="تعديل"><i class="fa-solid fa-user-pen"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function populateAdminUploadSelect() {
+      const select = document.getElementById('adminUploadStudentSelect');
+      if (!select) return;
+      select.innerHTML = '<option value="">-- اختر اسم المهندس --</option>';
+      sortedRoster.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = `${s.id} - ${s.name} (${s.system})`;
+        select.appendChild(opt);
+      });
+    }
+
+    function openAdminUploadModalDirect() {
+      populateAdminUploadSelect();
+      document.getElementById('adminUploadTitle').value = '';
+      openModal('adminUploadModal');
+    }
+
+    function openAdminUploadModalForStudent(studentId) {
+      populateAdminUploadSelect();
+      document.getElementById('adminUploadStudentSelect').value = studentId;
+      onAdminSelectUploadStudent(studentId);
+      openModal('adminUploadModal');
+    }
+
+    function onAdminSelectUploadStudent(studentId) {
+      if (!studentId) return;
+      const p = projectStore[studentId] || pendingApprovals[studentId];
+      if (p && p.title) {
+        document.getElementById('adminUploadTitle').value = p.title;
+      }
+    }
+
+    // رفع البرمجة كمسودة بدون تعيين كلمة سر وبدون نشر بالصفحة الرئيسية
+    async function handleAdminDirectUpload(e) {
+      e.preventDefault();
+      const id = document.getElementById('adminUploadStudentSelect').value;
+      const title = document.getElementById('adminUploadTitle').value.trim();
+      const pdfInput = document.getElementById('adminUploadPdfInput');
+      const coverInput = document.getElementById('adminUploadCoverInput');
+      const btn = document.getElementById('btnAdminDirectUploadSubmit');
+
+      if (!id) { alert('يرجى اختيار الطالب!'); return; }
+      if (!pdfInput.files.length && !coverInput.files.length) {
+        alert('يرجى اختيار ملف البرمجة PDF أو صورة الغلاف للرفع!');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "جاري الحفظ في مجلد الطالب بالسحابة...";
+
+      try {
+        let base64Data = null;
+        let fileName = null;
+        let mimeType = null;
+
+        if (pdfInput.files.length) {
+          const file = pdfInput.files[0];
+          base64Data = await readFileAsBase64(file);
+          fileName = file.name;
+          mimeType = file.type || "application/pdf";
+        }
+
+        let base64Cover = null;
+        let coverName = null;
+        let coverType = null;
+
+        if (coverInput.files.length) {
+          const cFile = coverInput.files[0];
+          base64Cover = await readFileAsBase64(cFile);
+          coverName = cFile.name;
+          coverType = cFile.type || "image/jpeg";
+        }
+
+        const student = sortedRoster.find(s => s.id === id);
+
+        // مسودة بدون PIN وبدون اعتماد
+        const draftProject = {
+          id: id,
+          name: student ? student.name : "",
+          system: student ? student.system : "عام",
+          title: title,
+          desc: "تم إيداع ملف البرمجة من قبل الإدارة كمسودة بانتظار استكمال الطالب لتسجيله.",
+          pin: "", // بدون تعيين أي رمز سري
+          allowShare: true,
+          contacts: [],
+          fileName: fileName,
+          fileUrl: "",
+          isDraftAdmin: true,
+          approved: false // لا يظهر كمعتمد
+        };
+
+        const res = await sendPostToCloud({
+          action: "updateProject",
+          studentId: id,
+          studentName: student ? student.name : "",
+          system: student ? student.system : "عام",
+          title: title,
+          desc: draftProject.desc,
+          pin: "", // لا تعتمد كلمة سر
+          allowShare: true,
+          contacts: [],
+          fileName: fileName,
+          mimeType: mimeType,
+          base64File: base64Data,
+          coverFileName: coverName,
+          coverMimeType: coverType,
+          base64Cover: base64Cover,
+          approved: false,
+          isDraftAdmin: true
+        });
+
+        if (res && res.fileUrl) draftProject.fileUrl = res.fileUrl;
+
+        projectStore[id] = draftProject;
+        localStorage.setItem('arch37_v12_db', JSON.stringify(projectStore));
+
+        alert(`تم رفع الملف بنجاح في مجلد المهندس (${student.name}) كمسودة بدون كلمة سر!\nسيبقى الملف محفوظاً في حسابه ولن يُنشر بالصفحة الرئيسية إلا بعد دخول الطالب وتعيين رمزه وموافقة المدير.`);
+        closeModal('adminUploadModal');
+        loadDriveRosterDashboard();
+        loadDraftAdminDashboard();
+        renderStudentGrid(sortedRoster);
+        updateBadges();
+      } catch (err) {
+        alert('حدث خطأ أثناء الرفع، يرجى المحاولة ثانية.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "حفظ الملف في مجلد الطالب دون اعتماده بالرئيسية";
+      }
+    }
+
+    async function adminQuickEditFileLink(studentId) {
+      const student = sortedRoster.find(s => s.id === studentId) || { name: studentId };
+      const currentUrl = (projectStore[studentId] && projectStore[studentId].fileUrl) ? projectStore[studentId].fileUrl : '';
+      const newUrl = prompt(`تعديل رابط ملف Google Drive للمهندس: ${student.name} (${studentId}):`, currentUrl);
+      if (newUrl !== null) {
+        await sendPostToCloud({
+          action: "updateProject",
+          studentId: studentId,
+          studentName: student.name,
+          fileUrl: newUrl.trim()
+        });
+        alert(`تم تحديث رابط ملف الطالب ${student.name} سحابياً!`);
+        await syncWithCloudDatabase();
+        loadDriveRosterDashboard();
+        loadAdminApprovedProjects();
+      }
+    }
+
+    function loadResetRequestsDashboard() {
+      const tbody = document.getElementById('resetReqTableBody');
+      tbody.innerHTML = '';
+      const reqKeys = Object.keys(resetRequests).filter(k => resetRequests[k].status === 'pending');
+      updateBadges();
+
+      if (reqKeys.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">لا توجد طلبات استعادة رمز سري حالياً.</td></tr>`;
+        return;
+      }
+
+      reqKeys.forEach(id => {
+        const item = resetRequests[id];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${id}</strong></td>
+          <td>${item.name}</td>
+          <td>${item.projectTitle}</td>
+          <td><span class="token-badge">${item.token}</span></td>
+          <td>${item.note || '—'}</td>
+          <td>
+            <button onclick="adminApproveResetRequest('${id}')" class="btn-top btn-gold" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;"><i class="fa-solid fa-key"></i> تعيين الرمز</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function adminApproveResetRequest(id) {
+      const req = resetRequests[id];
+      if (!req) return;
+      const currentPin = projectStore[id] ? projectStore[id].pin : '';
+      const newPin = prompt(`أدخل الرمز السري الجديد لاعتماده للطالب ${req.name} (${id}):`, currentPin || '2026');
+      if (newPin && newPin.trim()) {
+        await sendPostToCloud({
+          action: "approvePinReset",
+          studentId: id,
+          newPin: newPin.trim()
+        });
+        alert(`تم اعتماد وحفظ الرمز السري الجديد (${newPin.trim()}) سحابياً بنجاح!`);
+        await syncWithCloudDatabase();
+        loadResetRequestsDashboard();
+        loadAdminApprovedProjects();
+      }
+    }
+
+    function loadAdminApprovedProjects() {
+      const tbody = document.getElementById('adminTableBody');
+      tbody.innerHTML = '';
+      // استثناء المسودات غير المعتمدة من قائمة المشاريع المعتمدة تماماً
+      const approvedIds = Object.keys(projectStore).filter(id => projectStore[id].approved === true);
+      if (approvedIds.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">لا توجد مشاريع معتمدة بعد.</td></tr>`;
+        return;
+      }
+
+      approvedIds.forEach(id => {
+        const student = sortedRoster.find(s => s.id === id) || { name: "غير معروف" };
+        const p = projectStore[id];
+        let fileBadge = p.fileUrl ? `<a href="${p.fileUrl}" target="_blank" class="drive-link-badge"><i class="fa-brands fa-google-drive"></i> الرابط</a>` : `<span style="color:var(--text-muted); font-size:0.72rem;">لم يحدد</span>`;
+        const tr = document.createElement('tr');
+        tr.id = `approved-row-${id}`;
+        tr.innerHTML = `
+          <td><strong>${id}</strong></td>
+          <td>${student.name}</td>
+          <td>${p.title}</td>
+          <td><span class="pin-pill">${p.pin}</span></td>
+          <td>${fileBadge}</td>
+          <td>${p.allowShare ? '<span style="color:var(--success);">مسموح</span>' : '<span style="color:var(--text-muted);">محمي</span>'}</td>
+          <td>
+            <button onclick="adminOpenEditStudent('${id}')" class="btn-top btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.72rem; margin-left: 3px;" title="تعديل"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button onclick="adminResetStudentToZero('${id}')" class="btn-top" style="background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: #fca5a5; padding: 0.25rem 0.5rem; font-size: 0.72rem;" title="تصفير الحساب للبدء مجدداً"><i class="fa-solid fa-rotate-left"></i> تصفير</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function adminResetStudentToZero(id) {
+      const student = sortedRoster.find(s => s.id === id) || { name: id };
+      if (!confirm(`هل أنت متأكد من تصفير حساب الطالب ${student.name} (${id}) بالكامل؟\nسيتم مسح أي ملفات أو مسودات أو اعتمادات ليعود حسابه نظيفاً كطالب جديد.`)) {
+        return;
+      }
+
+      delete projectStore[id];
+      delete pendingApprovals[id];
+      delete resetRequests[id];
+      localStorage.removeItem(`arch37_welcomed_${id}`);
+      localStorage.setItem('arch37_v12_db', JSON.stringify(projectStore));
+      localStorage.setItem('arch37_pending_approvals_v12', JSON.stringify(pendingApprovals));
+      localStorage.setItem('arch37_reset_requests_v12', JSON.stringify(resetRequests));
+
+      loadAdminApprovedProjects();
+      loadDraftAdminDashboard();
+      loadApprovalsDashboard();
+      loadDriveRosterDashboard();
+      renderStudentGrid(sortedRoster);
+      updateBadges();
+
+      await sendPostToCloud({
+        action: "resetStudent",
+        studentId: id
+      });
+
+      alert(`تم تصفير حساب الطالب ${student.name} بنجاح! أصبح بإمكانه البدء من الصفر.`);
+      await syncWithCloudDatabase();
+      loadAdminApprovedProjects();
+      loadDraftAdminDashboard();
+      loadApprovalsDashboard();
+      loadDriveRosterDashboard();
+    }
+
+    function adminOpenEditStudent(id) {
+      const p = projectStore[id] || {};
+      const s = sortedRoster.find(item => item.id === id) || { name: "مهندس", system: "" };
+      document.getElementById('adminEditTargetId').value = id;
+      document.getElementById('adminEditStudentInfo').value = `${s.name} | الرقم: ${id} (${s.system})`;
+      document.getElementById('adminEditTitle').value = p.title || 'مشروع تخرج معماري';
+      document.getElementById('adminEditDesc').value = p.desc || '';
+      document.getElementById('adminEditFileUrl').value = p.fileUrl || '';
+      document.getElementById('adminEditAllowShare').value = (p.allowShare !== false) ? "true" : "false";
+      document.getElementById('adminEditPin').value = p.pin || '';
+      openModal('adminEditStudentModal');
+    }
+
+    async function handleAdminSaveStudentEdit(e) {
+      e.preventDefault();
+      const id = document.getElementById('adminEditTargetId').value;
+      if (!id) return;
+
+      const submitBtn = document.getElementById('btnAdminSaveEditSubmit');
+      submitBtn.disabled = true;
+
+      const student = sortedRoster.find(s => s.id === id);
+      await sendPostToCloud({
+        action: "updateProject",
+        studentId: id,
+        studentName: student ? student.name : "",
+        title: document.getElementById('adminEditTitle').value.trim(),
+        desc: document.getElementById('adminEditDesc').value.trim(),
+        fileUrl: document.getElementById('adminEditFileUrl').value.trim(),
+        allowShare: document.getElementById('adminEditAllowShare').value === "true",
+        pin: document.getElementById('adminEditPin').value.trim()
+      });
+
+      submitBtn.disabled = false;
+      closeModal('adminEditStudentModal');
+      alert('تم تحديث بيانات ورابط مشروع الطالب سحابياً بنجاح!');
+      await syncWithCloudDatabase();
+      loadAdminApprovedProjects();
+      loadDraftAdminDashboard();
+      loadDriveRosterDashboard();
+    }
+
+    function changeAdminPassword() {
+      const oldP = document.getElementById('adminOldPass').value.trim();
+      const newP = document.getElementById('adminNewPass').value.trim();
+      if (oldP !== ADMIN_MASTER_SECRET) { alert('كلمة سر المدير الحالية غير صحيحة!'); return; }
+      if (!newP) { alert('يرجى إدخال كلمة سر صالحة!'); return; }
+      ADMIN_MASTER_SECRET = newP;
+      localStorage.setItem('arch37_admin_pwd', newP);
+      clearPasswordFields();
+      alert('تم تغيير وتحديث كلمة سر المدير بنجاح!');
+    }
+
+    function logoutSite() {
+      sessionStorage.removeItem('arch37_authenticated_user');
+      location.reload();
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    if (sessionStorage.getItem('arch37_authenticated_user')) {
+      document.getElementById('gatekeeperScreen').style.display = 'none';
+      updateStudentWelcomeBar();
+      sendHeartbeat();
+    }
+
+    syncWithCloudDatabase();
+    setInterval(() => syncWithCloudDatabase(), 15000);
+  </script>
+</body>
+</html>
