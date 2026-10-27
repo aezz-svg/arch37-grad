@@ -3101,8 +3101,7 @@ await sendPayloadWithProgress({
       loadDraftAdminDashboard();
       loadDriveRosterDashboard();
     }
-
-    function changeAdminPassword() {
+function changeAdminPassword() {
       const oldP = document.getElementById('adminOldPass').value.trim();
       const newP = document.getElementById('adminNewPass').value.trim();
       if (oldP !== ADMIN_MASTER_SECRET) { alert('كلمة سر المدير الحالية غير صحيحة!'); return; }
@@ -3120,6 +3119,63 @@ await sendPayloadWithProgress({
 
     function openModal(id) { document.getElementById(id).classList.add('active'); }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    // ==========================================
+    // الدوال المفقودة لمعالجة وتعديل الصور والمشاريع بدون تعليق
+    // ==========================================
+    let editAvatarBase64 = "";
+    let editAvatarFileName = "";
+    let editAvatarMimeType = "";
+
+    function handleEditAvatarFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      editAvatarFileName = file.name;
+      editAvatarMimeType = file.type;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Full = e.target.result;
+        editAvatarBase64 = base64Full.split(',')[1] || base64Full;
+        console.log("تم تجهيز الصورة بنجاح:", editAvatarFileName);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function handleEditProject(studentId) {
+      try {
+        const payload = {
+          action: "updateProject",
+          studentId: String(studentId),
+          studentName: document.getElementById("editStudentName") ? document.getElementById("editStudentName").value : "",
+          title: document.getElementById("editProjectTitle") ? document.getElementById("editProjectTitle").value : "",
+          desc: document.getElementById("editProjectDesc") ? document.getElementById("editProjectDesc").value : "",
+          pin: document.getElementById("editStudentPin") ? document.getElementById("editStudentPin").value : "",
+          base64File: editAvatarBase64 || "",
+          fileName: editAvatarFileName || "",
+          mimeType: editAvatarMimeType || ""
+        };
+
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytfsFNWtp5JoYbBgwECQccagt20j9SW-kFCnkuzyyPToOcjvX4davED_lLAiIqXITKhg/exec";
+
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        alert("تم حفظ التعديلات بنجاح يا مهندس!");
+        location.reload();
+      } catch (err) {
+        console.error("خطأ أثناء التعديل:", err);
+        alert("حدث خطأ أثناء الحفظ، تأكد من الاتصال.");
+      }
+    }
+    // ==========================================
 
     if (sessionStorage.getItem('arch37_authenticated_user')) {
       document.getElementById('gatekeeperScreen').style.display = 'none';
