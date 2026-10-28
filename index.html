@@ -2502,7 +2502,7 @@ function updateStudentWelcomeBar() {
         progressStatus.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> جارٍ حفظ بيانات المشروع...';
 
         await sendPayloadWithProgress({
-          action: "updateProject",
+          action: "registerStudent",
           studentId: id,
           studentName: student.name,
           system: student.system || "عام",
@@ -2518,10 +2518,7 @@ function updateStudentWelcomeBar() {
           coverFileName: coverName,
           coverUrl,
           coverMimeType: coverFile ? (coverFile.type || "image/jpeg") : null,
-          base64Cover: null,
-          avatarFileName: editAvatarFileName || null,
-          avatarMimeType: editAvatarMimeType || null,
-          base64Avatar: editAvatarBase64 || null
+          base64Cover: null
         });
         clearCompletedUploadSessions(uploads);
         progressBar.style.width = '100%';

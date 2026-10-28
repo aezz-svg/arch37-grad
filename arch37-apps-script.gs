@@ -135,8 +135,8 @@ function doPost(e) {
     // تسجيل مشروع جديد وإيداعه بانتظار الاعتماد.
     if (action === "registerStudent") {
       requireFields_(data, ["studentId", "studentName"]);
-      let fileUrl = "";
-      let coverUrl = "";
+      let fileUrl = String(data.fileUrl || "");
+      let coverUrl = String(data.coverUrl || "");
 
       if (data.base64File && data.fileName) {
         fileUrl = uploadFileToStudentFolder(data.studentId, data.studentName, data.fileName, data.mimeType, data.base64File, "مشروع");
