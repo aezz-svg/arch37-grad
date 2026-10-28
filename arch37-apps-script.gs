@@ -19,6 +19,10 @@ const SHEET_NAMES = [
   "ResetRequests",
   "Feedbacks"
 ];
+const DRIVE_UPLOAD_SESSION_PREFIX = "ARCH37_DRIVE_UPLOAD_";
+const DRIVE_UPLOAD_CHUNK_BYTES = 2 * 1024 * 1024;
+const DRIVE_UPLOAD_MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024;
+const DRIVE_UPLOAD_SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 function doGet() {
   try {
@@ -35,6 +39,15 @@ function doPost(e) {
     data = parseRequest_(e);
   } catch (err) {
     return jsonResponse({ status: "error", message: "تعذر قراءة الطلب." });
+  }
+
+  // Large project files use resumable Drive sessions, so each request stays small.
+  if (["beginFileUpload", "uploadFileChunk", "getFileUploadStatus", "cancelFileUpload"].includes(data.action)) {
+    try {
+      return jsonResponse(handleDriveUploadRequest_(data));
+    } catch (err) {
+      return jsonResponse({ status: "error", message: safeError_(err) });
+    }
   }
 
   // قراءة بيانات المدير والرموز محمية بكلمة مرور محفوظة في Script Properties.
@@ -333,13 +346,21 @@ function parseRequest_(e) {
 
 function authorizeDriveAccess() {
   const folder = DriveApp.getFolderById(TARGET_FOLDER_ID);
-  // Force Apps Script to request the Drive scope needed by createFile().
+  // Authorize both the Drive and external-request scopes used by resumable uploads.
   const probe = folder.createFile(
     `arch37-drive-permission-check-${Date.now()}.txt`,
     "Temporary permission check",
     MimeType.PLAIN_TEXT
   );
   probe.setTrashed(true);
+  const response = UrlFetchApp.fetch("https://www.googleapis.com/drive/v3/about?fields=user", {
+    method: "get",
+    headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() },
+    muteHttpExceptions: true
+  });
+  if (response.getResponseCode() < 200 || response.getResponseCode() >= 300) {
+    throw new Error("تعذر التحقق من صلاحية رفع الملفات.");
+  }
   return folder.getName();
 }
 function extractDriveFileId_(value) {
@@ -368,6 +389,203 @@ function uploadFileToStudentFolder(studentId, studentName, fileName, mimeType, b
   const file = studentFolder.createFile(blob);
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   return file.getUrl();
+}
+
+function handleDriveUploadRequest_(data) {
+  if (data.action === "beginFileUpload") return beginDriveUpload_(data);
+  if (data.action === "uploadFileChunk") return uploadDriveChunk_(data);
+  if (data.action === "getFileUploadStatus") return getDriveUploadStatus_(data);
+  if (data.action === "cancelFileUpload") return cancelDriveUpload_(data);
+  throw new Error("Unsupported upload action");
+}
+
+function beginDriveUpload_(data) {
+  requireFields_(data, ["studentId", "studentName", "fileName", "fileSize"]);
+  const studentId = normalizeId_(data.studentId);
+  const fileSize = Number(data.fileSize);
+  if (!studentId || !Number.isSafeInteger(fileSize) || fileSize < 1 || fileSize > DRIVE_UPLOAD_MAX_FILE_BYTES) {
+    throw new Error("حجم الملف غير صالح أو يتجاوز الحد المسموح.");
+  }
+
+  cleanupOldDriveUploadSessions_();
+  const folder = getOrCreateStudentFolder_(studentId, data.studentName);
+  const fileName = `[${studentId}] ${String(data.tag || "مشروع")} - ${sanitizeDriveFileName_(data.fileName)}`;
+  const mimeType = String(data.mimeType || "application/octet-stream");
+  const metadata = { name: fileName, mimeType: mimeType, parents: [folder.getId()] };
+  const response = UrlFetchApp.fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,webViewLink", {
+    method: "post",
+    contentType: "application/json; charset=UTF-8",
+    headers: {
+      Authorization: "Bearer " + ScriptApp.getOAuthToken(),
+      "X-Upload-Content-Type": mimeType,
+      "X-Upload-Content-Length": String(fileSize)
+    },
+    payload: JSON.stringify(metadata),
+    muteHttpExceptions: true,
+    followRedirects: false
+  });
+  const status = response.getResponseCode();
+  const sessionUrl = getResponseHeader_(response, "Location");
+  if (status < 200 || status >= 300 || !sessionUrl) {
+    throw new Error("تعذر بدء رفع الملف إلى Drive (HTTP " + status + ").");
+  }
+
+  const uploadId = Utilities.getUuid().replace(/-/g, "");
+  const session = {
+    uploadId: uploadId,
+    sessionUrl: sessionUrl,
+    studentId: studentId,
+    studentName: String(data.studentName || "طالب"),
+    fileName: fileName,
+    mimeType: mimeType,
+    fileSize: fileSize,
+    createdAt: Date.now(),
+    completed: false
+  };
+  PropertiesService.getScriptProperties().setProperty(DRIVE_UPLOAD_SESSION_PREFIX + uploadId, JSON.stringify(session));
+  return { status: "success", uploadId: uploadId, nextOffset: 0, chunkSize: DRIVE_UPLOAD_CHUNK_BYTES };
+}
+
+function uploadDriveChunk_(data) {
+  requireFields_(data, ["uploadId", "start", "base64Chunk"]);
+  const session = getDriveUploadSession_(data.uploadId);
+  if (session.completed) return completedDriveUploadResult_(session);
+  const start = Number(data.start);
+  const bytes = Utilities.base64Decode(String(data.base64Chunk).replace(/\s/g, ""));
+  if (!Number.isSafeInteger(start) || start < 0 || start >= session.fileSize || start % DRIVE_UPLOAD_CHUNK_BYTES !== 0 || bytes.length < 1 || bytes.length > DRIVE_UPLOAD_CHUNK_BYTES || start + bytes.length > session.fileSize) {
+    throw new Error("جزء الملف غير صالح.");
+  }
+
+  const remote = queryDriveUploadSession_(session);
+  if (remote.complete) return completeDriveUpload_(session, remote.file);
+  if (remote.nextOffset !== start) return { status: "partial", nextOffset: remote.nextOffset };
+
+  const end = start + bytes.length - 1;
+  const response = UrlFetchApp.fetch(session.sessionUrl, {
+    method: "put",
+    contentType: session.mimeType,
+    headers: { "Content-Range": "bytes " + start + "-" + end + "/" + session.fileSize },
+    payload: bytes,
+    muteHttpExceptions: true,
+    followRedirects: false
+  });
+  const status = response.getResponseCode();
+  if (status === 308) return { status: "partial", nextOffset: nextOffsetFromRange_(getResponseHeader_(response, "Range")) };
+  if (status === 200 || status === 201) return completeDriveUpload_(session, parseDriveUploadResponse_(response));
+  throw new Error("تعذر إرسال جزء الملف إلى Drive (HTTP " + status + ").");
+}
+
+function getDriveUploadStatus_(data) {
+  requireFields_(data, ["uploadId"]);
+  const session = getDriveUploadSession_(data.uploadId);
+  if (session.completed) return completedDriveUploadResult_(session);
+  const remote = queryDriveUploadSession_(session);
+  if (remote.complete) return completeDriveUpload_(session, remote.file);
+  return { status: "partial", nextOffset: remote.nextOffset };
+}
+
+function queryDriveUploadSession_(session) {
+  const response = UrlFetchApp.fetch(session.sessionUrl, {
+    method: "put",
+    contentType: session.mimeType,
+    headers: { "Content-Range": "bytes */" + session.fileSize },
+    payload: "",
+    muteHttpExceptions: true,
+    followRedirects: false
+  });
+  const status = response.getResponseCode();
+  if (status === 308) return { complete: false, nextOffset: nextOffsetFromRange_(getResponseHeader_(response, "Range")) };
+  if (status === 200 || status === 201) return { complete: true, file: parseDriveUploadResponse_(response) };
+  if (status === 404) throw new Error("انتهت جلسة رفع الملف؛ أعد اختيار الملف.");
+  throw new Error("تعذر التحقق من جلسة الرفع (HTTP " + status + ").");
+}
+
+function completeDriveUpload_(session, file) {
+  if (!file || !file.id) throw new Error("لم يؤكد Drive اكتمال الملف.");
+  const driveFile = DriveApp.getFileById(file.id);
+  driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  session.completed = true;
+  session.fileId = file.id;
+  session.fileUrl = driveFile.getUrl();
+  session.completedAt = Date.now();
+  session.sessionUrl = "";
+  PropertiesService.getScriptProperties().setProperty(DRIVE_UPLOAD_SESSION_PREFIX + session.uploadId, JSON.stringify(session));
+  return completedDriveUploadResult_(session);
+}
+
+function completedDriveUploadResult_(session) {
+  return { status: "success", uploadId: session.uploadId, fileId: session.fileId, fileUrl: session.fileUrl, fileName: session.fileName };
+}
+
+function cancelDriveUpload_(data) {
+  requireFields_(data, ["uploadId"]);
+  const key = DRIVE_UPLOAD_SESSION_PREFIX + String(data.uploadId);
+  PropertiesService.getScriptProperties().deleteProperty(key);
+  return { status: "success" };
+}
+
+function getDriveUploadSession_(uploadId) {
+  const id = String(uploadId || "");
+  if (!/^[a-f0-9]{32}$/i.test(id)) throw new Error("معرّف جلسة الرفع غير صالح.");
+  const raw = PropertiesService.getScriptProperties().getProperty(DRIVE_UPLOAD_SESSION_PREFIX + id);
+  if (!raw) throw new Error("جلسة الرفع غير موجودة أو انتهت.");
+  const session = JSON.parse(raw);
+  if (!session.completed && Date.now() - Number(session.createdAt || 0) > DRIVE_UPLOAD_SESSION_MAX_AGE_MS) {
+    PropertiesService.getScriptProperties().deleteProperty(DRIVE_UPLOAD_SESSION_PREFIX + id);
+    throw new Error("انتهت جلسة رفع الملف؛ أعد اختيار الملف.");
+  }
+  return session;
+}
+
+function cleanupOldDriveUploadSessions_() {
+  const properties = PropertiesService.getScriptProperties();
+  const all = properties.getProperties();
+  const now = Date.now();
+  Object.keys(all).forEach(key => {
+    if (key.indexOf(DRIVE_UPLOAD_SESSION_PREFIX) !== 0) return;
+    try {
+      const session = JSON.parse(all[key]);
+      const timestamp = Number(session.completedAt || session.createdAt || 0);
+      if (!timestamp || now - timestamp > DRIVE_UPLOAD_SESSION_MAX_AGE_MS) properties.deleteProperty(key);
+    } catch (error) {
+      properties.deleteProperty(key);
+    }
+  });
+}
+
+function getResponseHeader_(response, name) {
+  const headers = response.getAllHeaders();
+  const key = Object.keys(headers).find(header => header.toLowerCase() === name.toLowerCase());
+  return key ? String(headers[key]) : "";
+}
+
+function nextOffsetFromRange_(range) {
+  const match = String(range || "").match(/-(\d+)\s*$/);
+  return match ? Number(match[1]) + 1 : 0;
+}
+
+function parseDriveUploadResponse_(response) {
+  const body = response.getContentText();
+  try { return JSON.parse(body); }
+  catch (error) { throw new Error("أعاد Drive استجابة غير مفهومة."); }
+}
+
+function getOrCreateStudentFolder_(studentId, studentName) {
+  const rootFolder = DriveApp.getFolderById(TARGET_FOLDER_ID);
+  const sid = normalizeId_(studentId);
+  const folders = rootFolder.getFolders();
+  while (folders.hasNext()) {
+    const folder = folders.next();
+    if (folder.getName().indexOf(sid) !== -1) return folder;
+  }
+  const folder = rootFolder.createFolder(`[${sid}] ${studentName || "طالب"} مشاريع التخرج`);
+  folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return folder;
+}
+
+function sanitizeDriveFileName_(fileName) {
+  const safe = String(fileName || "project-file").replace(/[\\/:*?"<>|\u0000-\u001F]/g, "_").trim().slice(0, 180);
+  return safe || "project-file";
 }
 
 function notifyAdmin(subject, message) {

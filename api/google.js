@@ -3,7 +3,8 @@ const ALLOWED_ACTIONS = new Set([
   "getAdminData", "verifyStudent", "registerStudent", "decideApproval",
   "changeAdminPassword", "changeStudentPin",
   "updateProject", "removeProfilePhoto", "recordVisit", "resetStudent", "requestPinReset",
-  "approvePinReset", "sendFeedback", "saveLiveCode"
+  "approvePinReset", "sendFeedback", "saveLiveCode",
+  "beginFileUpload", "uploadFileChunk", "getFileUploadStatus", "cancelFileUpload"
 ]);
 
 module.exports = async function handler(req, res) {

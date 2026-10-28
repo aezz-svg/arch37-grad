@@ -2285,6 +2285,160 @@ function updateStudentWelcomeBar() {
       });
     }
 
+    const PROJECT_UPLOAD_MAX_BYTES = 2 * 1024 * 1024 * 1024;
+    const PROJECT_UPLOAD_CHUNK_BYTES = 2 * 1024 * 1024;
+
+    async function uploadProjectFileInChunks(file, details, onProgress) {
+      if (!file || !Number.isSafeInteger(file.size) || file.size < 1) {
+        throw new Error('ملف المشروع فارغ أو غير صالح.');
+      }
+      if (file.size > PROJECT_UPLOAD_MAX_BYTES) {
+        throw new Error('حجم الملف يتجاوز 2 جيجابايت.');
+      }
+
+      const resumeKey = `arch37-upload:${encodeURIComponent([details.studentId, details.tag || 'مشروع', file.name, file.size, file.lastModified].join('|'))}`;
+      let session = null;
+      let uploadId = '';
+      try { uploadId = sessionStorage.getItem(resumeKey) || ''; } catch (_) {}
+      if (uploadId) {
+        try {
+          session = await sendPayloadWithProgress({ action: 'getFileUploadStatus', uploadId });
+          if (session?.status === 'success' && session.fileUrl) {
+            if (onProgress) onProgress(file.size, file.size, 1);
+            return { ...session, resumeKey };
+          }
+          if (session?.status !== 'partial') uploadId = '';
+        } catch (error) {
+          if (/جلسة الرفع غير موجودة|انتهت/i.test(String(error?.message || ''))) {
+            try { sessionStorage.removeItem(resumeKey); } catch (_) {}
+            uploadId = '';
+          } else {
+            throw new Error(safeUserErrorMessage(error, 'تعذر استعادة رفع الملف. تحقق من الاتصال ثم حاول مرة أخرى.'));
+          }
+        }
+      }
+
+      if (!uploadId) {
+        session = await sendPayloadWithProgress({
+          action: 'beginFileUpload',
+          studentId: details.studentId,
+          studentName: details.studentName || 'طالب',
+          fileName: file.name,
+          mimeType: file.type || details.mimeType || 'application/octet-stream',
+          fileSize: file.size,
+          tag: details.tag || 'مشروع'
+        });
+        if (!session || session.status !== 'success' || !session.uploadId) {
+          throw new Error('تعذر بدء رفع الملف. حاول مرة أخرى.');
+        }
+        uploadId = session.uploadId;
+        try { sessionStorage.setItem(resumeKey, uploadId); } catch (_) {}
+      }
+
+      const chunkSize = Number(session?.chunkSize) || PROJECT_UPLOAD_CHUNK_BYTES;
+      if (chunkSize !== PROJECT_UPLOAD_CHUNK_BYTES) {
+        throw new Error('إعداد دفعات الرفع غير متوافق.');
+      }
+
+      let offset = Number(session.nextOffset) || 0;
+      let retriesWithoutProgress = 0;
+      let lastError = null;
+      while (offset < file.size) {
+        const end = Math.min(offset + chunkSize, file.size);
+        const base64Chunk = await readFileAsBase64(file.slice(offset, end));
+        try {
+          const result = await sendPayloadWithProgress({
+            action: 'uploadFileChunk',
+            uploadId,
+            start: offset,
+            base64Chunk
+          }, (percent, loaded, total, attempt) => {
+            if (onProgress) onProgress(offset + Math.round((end - offset) * percent / 100), file.size, attempt);
+          });
+
+          if (result?.status === 'success' && result.fileUrl) {
+            if (onProgress) onProgress(file.size, file.size, 1);
+            return { ...result, resumeKey };
+          }
+          if (result?.status !== 'partial') throw new Error('لم يؤكد الخادم استلام دفعة الملف.');
+          const nextOffset = Number(result.nextOffset);
+          if (Number.isSafeInteger(nextOffset) && nextOffset > offset && nextOffset <= file.size) {
+            offset = nextOffset;
+            retriesWithoutProgress = 0;
+            lastError = null;
+            if (onProgress) onProgress(offset, file.size, 1);
+            continue;
+          }
+        } catch (error) {
+          lastError = error;
+        }
+
+        // If the connection dropped after Google accepted a chunk, ask the server
+        // for its confirmed byte offset and continue from there without re-sending
+        // the entire file (or guessing whether a chunk arrived).
+        try {
+          const status = await sendPayloadWithProgress({ action: 'getFileUploadStatus', uploadId });
+          if (status?.status === 'success' && status.fileUrl) {
+            if (onProgress) onProgress(file.size, file.size, 1);
+            return { ...status, resumeKey };
+          }
+          const confirmedOffset = Number(status?.nextOffset);
+          if (status?.status === 'partial' && Number.isSafeInteger(confirmedOffset) && confirmedOffset > offset && confirmedOffset <= file.size) {
+            offset = confirmedOffset;
+            retriesWithoutProgress = 0;
+            lastError = null;
+            if (onProgress) onProgress(offset, file.size, 1);
+            continue;
+          }
+        } catch (statusError) {
+          lastError = statusError || lastError;
+        }
+
+        retriesWithoutProgress += 1;
+        if (retriesWithoutProgress >= 12) {
+          throw new Error(safeUserErrorMessage(lastError, 'تعذر الاتصال لإكمال رفع الملف. أعد المحاولة مع اتصال مستقر.'));
+        }
+        if (onProgress) onProgress(offset, file.size, retriesWithoutProgress + 1);
+        await new Promise(resolve => setTimeout(resolve, Math.min(1500 * Math.pow(2, retriesWithoutProgress - 1), 20000)));
+      }
+
+      // The final response may have been lost. Confirm completion through the
+      // resumable session before reporting success to the student.
+      const completed = await sendPayloadWithProgress({ action: 'getFileUploadStatus', uploadId });
+      if (completed?.status !== 'success' || !completed.fileUrl) {
+        throw new Error('لم يصل تأكيد اكتمال الملف. حاول مرة أخرى.');
+      }
+      return { ...completed, resumeKey };
+    }
+
+    function clearCompletedUploadSessions(uploaded) {
+      Object.values(uploaded || {}).forEach(result => {
+        if (result?.resumeKey) {
+          try { sessionStorage.removeItem(result.resumeKey); } catch (_) {}
+        }
+      });
+    }
+
+    async function uploadProjectFiles(files, details, onProgress) {
+      const validFiles = files.filter(item => item && item.file);
+      const totalBytes = validFiles.reduce((sum, item) => sum + item.file.size, 0);
+      let completedBytes = 0;
+      const uploaded = {};
+      for (const item of validFiles) {
+        const result = await uploadProjectFileInChunks(item.file, {
+          studentId: details.studentId,
+          studentName: details.studentName,
+          tag: item.tag,
+          mimeType: item.mimeType
+        }, (fileBytes, fileSize, attempt) => {
+          if (onProgress) onProgress(completedBytes + fileBytes, totalBytes, attempt);
+        });
+        uploaded[item.key] = result;
+        completedBytes += item.file.size;
+      }
+      return uploaded;
+    }
+
     async function handleGateRegister(e) {
       e.preventDefault();
       const id = normalizeStudentId(document.getElementById('gateRegId').value);
@@ -2330,54 +2484,46 @@ function updateStudentWelcomeBar() {
       progressTime.textContent = 'بدء الاتصال...';
 
       try {
-        let base64Data = null;
-        let fileName = null;
-        let mimeType = null;
+        progressStatus.innerHTML = '<i class="fa-solid fa-file-arrow-up"></i> جارٍ رفع ملفات المشروع على دفعات...';
+        const uploads = await uploadProjectFiles([
+          file && { key: 'project', file, tag: 'مشروع', mimeType: file.type || 'application/pdf' },
+          coverFile && { key: 'cover', file: coverFile, tag: 'غلاف', mimeType: coverFile.type || 'image/jpeg' }
+        ], { studentId: id, studentName: student.name }, (loaded, total, attempt) => {
+          const percent = total ? Math.round(loaded / total * 100) : 100;
+          if (attempt > 1) progressStatus.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> الاتصال ضعيف؛ نتابع الرفع من آخر دفعة مؤكدة...';
+          progressBar.style.width = `${percent}%`;
+          progressPercent.textContent = `${percent}%`;
+          progressBytes.textContent = `${(loaded / (1024*1024)).toFixed(2)} MB / ${(total / (1024*1024)).toFixed(2)} MB`;
+        });
+        const fileName = file ? file.name : (existingProject?.fileName || null);
+        const fileUrl = uploads.project?.fileUrl || existingProject?.fileUrl || '';
+        const coverName = coverFile ? coverFile.name : null;
+        const coverUrl = uploads.cover?.fileUrl || existingProject?.coverUrl || '';
+        progressStatus.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> جارٍ حفظ بيانات المشروع...';
 
-        if (file) {
-          base64Data = await readFileAsBase64(file);
-          fileName = file.name;
-          mimeType = file.type || "application/pdf";
-        }
-
-        let base64Cover = null;
-        let coverName = null;
-        let coverType = null;
-
-        if (coverFile) {
-          base64Cover = await readFileAsBase64(coverFile);
-          coverName = coverFile.name;
-          coverType = coverFile.type || "image/jpeg";
-        }
-
-        progressStatus.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> جارٍ حفظ المرفقات...';
-
-       await sendPayloadWithProgress({
-    action: "updateProject",
-    studentId: id,
-    studentName: student ? student.name : "",
-    system: student ? student.system : "عام",
-    title: title,
-    desc: desc,
-    pin: pin,
-    allowShare: allowShare,
-    contacts: contacts,
-    fileName: fileName,
-    mimeType: mimeType,
-    base64File: base64Data,
-    coverFileName: coverName,
-    coverMimeType: coverType,
-    base64Cover: base64Cover,
-    avatarFileName: editAvatarFileName || null,
-    avatarMimeType: editAvatarMimeType || null,
-    base64Avatar: editAvatarBase64 || null
-    // ------------------------------------------------
-  }, (percent, loaded, total, attempt) => {
-    if (attempt > 1) { const retryStatus = document.getElementById("gateProgressStatus"); if (retryStatus) retryStatus.innerHTML = `<i class="fa-solid fa-rotate fa-spin"></i> انقطع الاتصال؛ إعادة المحاولة (${attempt} من 4)...`; }
-    progressBar.style.width = `${percent}%`;
-    progressPercent.textContent = `${percent}%`;
-    progressBytes.textContent = `${(loaded / (1024*1024)).toFixed(2)} MB / ${(total / (1024*1024)).toFixed(2)} MB`;
-  });
+        await sendPayloadWithProgress({
+          action: "updateProject",
+          studentId: id,
+          studentName: student.name,
+          system: student.system || "عام",
+          title,
+          desc,
+          pin,
+          allowShare,
+          contacts,
+          fileName,
+          fileUrl,
+          mimeType: file ? (file.type || "application/pdf") : null,
+          base64File: null,
+          coverFileName: coverName,
+          coverUrl,
+          coverMimeType: coverFile ? (coverFile.type || "image/jpeg") : null,
+          base64Cover: null,
+          avatarFileName: editAvatarFileName || null,
+          avatarMimeType: editAvatarMimeType || null,
+          base64Avatar: editAvatarBase64 || null
+        });
+        clearCompletedUploadSessions(uploads);
         progressBar.style.width = '100%';
         progressPercent.textContent = '100%';
         progressStatus.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--success);"></i> تم حفظ البيانات بنجاح.';
@@ -2387,7 +2533,7 @@ function updateStudentWelcomeBar() {
         document.getElementById('gateRegisterForm').reset();
         await syncWithCloudDatabase();
       } catch (err) {
-        alert('حدث خطأ أثناء الاتصال بالخادم، يرجى المحاولة ثانية.');
+        alert(safeUserErrorMessage(err, 'تعذر رفع الملف أو حفظ البيانات. حاول مرة أخرى.'));
       } finally {
         submitBtn.disabled = false;
         setTimeout(() => { progressBox.style.display = 'none'; }, 1500);
@@ -2476,16 +2622,7 @@ function updateStudentWelcomeBar() {
   progressPercent.textContent = '5%';
 
   const fileInput = document.getElementById('editFileInput');
-  let base64Data = null;
-  let fileName = null;
-  let mimeType = null;
-
-  if (fileInput.files && fileInput.files.length > 0) {
-    const file = fileInput.files[0];
-    fileName = file.name;
-    mimeType = file.type || "application/pdf";
-    base64Data = await readFileAsBase64(file);
-  }
+  const projectFile = fileInput.files && fileInput.files.length > 0 ? fileInput.files[0] : null;
 
  const avatarInput = document.getElementById('editAvatarInput');
 let base64Avatar = editAvatarBase64 || null;
@@ -2509,6 +2646,25 @@ try {
   if (avatarInput.files && avatarInput.files.length > 0 && !base64Avatar) {
     throw new Error('تعذر قراءة صورة الملف الشخصي من الجهاز. اختر الصورة مرة أخرى.');
   }
+  let projectUpload = null;
+  if (projectFile) {
+    const studentName = student ? student.name : activeTarget.name || 'طالب';
+    projectUpload = await uploadProjectFileInChunks(projectFile, {
+      studentId: id,
+      studentName,
+      tag: 'مشروع',
+      mimeType: projectFile.type || 'application/pdf'
+    }, (loaded, total, attempt) => {
+      const percent = total ? Math.round(loaded / total * 100) : 100;
+      progressBar.style.width = `${percent}%`;
+      progressPercent.textContent = `${percent}%`;
+      progressBytes.textContent = `${(loaded / (1024*1024)).toFixed(2)} MB / ${(total / (1024*1024)).toFixed(2)} MB`;
+      if (attempt > 1) {
+        const status = document.getElementById('editProgressStatus');
+        if (status) status.textContent = 'الاتصال ضعيف؛ نتابع الرفع من آخر دفعة مؤكدة...';
+      }
+    });
+  }
   savedResult = await sendPayloadWithProgress({
     action: "updateProject",
     studentId: id,
@@ -2519,9 +2675,10 @@ try {
     pin: pin,
     allowShare: allowShare,
     contacts: contacts,
-    fileName: fileName,
-    mimeType: mimeType,
-    base64File: base64Data,
+    fileName: projectFile ? projectFile.name : null,
+    mimeType: projectFile ? (projectFile.type || "application/pdf") : null,
+    fileUrl: projectUpload?.fileUrl || '',
+    base64File: null,
     avatarFileName: avatarFileName,
     avatarMimeType: avatarMimeType,
     base64Avatar: base64Avatar
@@ -2532,6 +2689,9 @@ try {
     progressPercent.textContent = `${percent}%`;
     progressBytes.textContent = `${(loaded / (1024*1024)).toFixed(2)} MB / ${(total / (1024*1024)).toFixed(2)} MB`;
   });
+  if (projectUpload?.resumeKey) {
+    try { sessionStorage.removeItem(projectUpload.resumeKey); } catch (_) {}
+  }
   if (avatarInput.files && avatarInput.files.length > 0 && !savedResult?.avatarUrl) {
     throw new Error('تعذر حفظ صورة الملف الشخصي. حاول مجدداً بعد قليل.');
   }
@@ -3117,29 +3277,20 @@ try {
       btn.textContent = "جارٍ حفظ المشروع...";
 
       try {
-        let base64Data = null;
-        let fileName = null;
-        let mimeType = null;
-
-        if (pdfInput.files.length) {
-          const file = pdfInput.files[0];
-          base64Data = await readFileAsBase64(file);
-          fileName = file.name;
-          mimeType = file.type || "application/pdf";
-        }
-
-        let base64Cover = null;
-        let coverName = null;
-        let coverType = null;
-
-        if (coverInput.files.length) {
-          const cFile = coverInput.files[0];
-          base64Cover = await readFileAsBase64(cFile);
-          coverName = cFile.name;
-          coverType = cFile.type || "image/jpeg";
-        }
-
         const student = sortedRoster.find(s => s.id === id);
+        const pdfFile = pdfInput.files.length ? pdfInput.files[0] : null;
+        const coverFile = coverInput.files.length ? coverInput.files[0] : null;
+        const uploads = await uploadProjectFiles([
+          pdfFile && { key: 'project', file: pdfFile, tag: 'مشروع', mimeType: pdfFile.type || 'application/pdf' },
+          coverFile && { key: 'cover', file: coverFile, tag: 'غلاف', mimeType: coverFile.type || 'image/jpeg' }
+        ], { studentId: id, studentName: student ? student.name : id }, (loaded, total, attempt) => {
+          const percent = total ? Math.round(loaded / total * 100) : 100;
+          btn.textContent = attempt > 1
+            ? `إعادة المحاولة تلقائياً (${percent}%)`
+            : `جارٍ رفع ملفات المشروع (${percent}%)`;
+        });
+        const fileName = pdfFile ? pdfFile.name : null;
+        const coverName = coverFile ? coverFile.name : null;
 
         // مسودة بدون PIN وبدون اعتماد
         const draftProject = {
@@ -3152,7 +3303,8 @@ try {
           allowShare: true,
           contacts: [],
           fileName: fileName,
-          fileUrl: "",
+          fileUrl: uploads.project?.fileUrl || "",
+          coverUrl: uploads.cover?.fileUrl || "",
           isDraftAdmin: true,
           approved: false // لا يظهر كمعتمد
         };
@@ -3168,16 +3320,21 @@ try {
           allowShare: true,
           contacts: [],
           fileName: fileName,
-          mimeType: mimeType,
-          base64File: base64Data,
+          mimeType: pdfFile ? (pdfFile.type || "application/pdf") : null,
+          fileUrl: uploads.project?.fileUrl || "",
+          base64File: null,
           coverFileName: coverName,
-          coverMimeType: coverType,
-          base64Cover: base64Cover,
+          coverMimeType: coverFile ? (coverFile.type || "image/jpeg") : null,
+          coverUrl: uploads.cover?.fileUrl || "",
+          base64Cover: null,
           approved: false,
           isDraftAdmin: true
         });
 
+        clearCompletedUploadSessions(uploads);
+
         if (res && res.fileUrl) draftProject.fileUrl = res.fileUrl;
+        if (res && res.coverUrl) draftProject.coverUrl = res.coverUrl;
 
         projectStore[id] = draftProject;
         persistPublicCaches();
