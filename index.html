@@ -1904,10 +1904,17 @@ function updateStudentWelcomeBar() {
       }
     }
 
+    function normalizeLoginValue(value) {
+      return String(value ?? '').normalize('NFKC').trim().replace(/[٠-٩۰-۹]/g, digit => {
+        const code = digit.charCodeAt(0);
+        return String(code >= 0x06F0 ? code - 0x06F0 : code - 0x0660);
+      });
+    }
+
     async function handleGateLogin(e) {
       e.preventDefault();
-      const enteredId = document.getElementById('gateLoginId').value.trim();
-      const enteredPin = document.getElementById('gateLoginPin').value.trim();
+      const enteredId = normalizeLoginValue(document.getElementById('gateLoginId').value);
+      const enteredPin = normalizeLoginValue(document.getElementById('gateLoginPin').value);
       const submitBtn = document.getElementById('btnGateLoginSubmit');
 
       if (enteredPin === ADMIN_MASTER_SECRET) {
@@ -1943,7 +1950,7 @@ function updateStudentWelcomeBar() {
         return;
       }
 
-      if (String(proj.pin) === String(enteredPin)) {
+      if (normalizeLoginValue(proj.pin) === enteredPin) {
         sessionStorage.setItem('arch37_authenticated_user', enteredId);
         recordStudentVisit(enteredId, student.name);
         document.getElementById('gatekeeperScreen').style.display = 'none';
