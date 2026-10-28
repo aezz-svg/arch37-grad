@@ -332,7 +332,15 @@ function parseRequest_(e) {
 }
 
 function authorizeDriveAccess() {
-  return DriveApp.getFolderById(TARGET_FOLDER_ID).getName();
+  const folder = DriveApp.getFolderById(TARGET_FOLDER_ID);
+  // Force Apps Script to request the Drive scope needed by createFile().
+  const probe = folder.createFile(
+    `arch37-drive-permission-check-${Date.now()}.txt`,
+    "Temporary permission check",
+    MimeType.PLAIN_TEXT
+  );
+  probe.setTrashed(true);
+  return folder.getName();
 }
 function extractDriveFileId_(value) {
   const url = String(value || "");
