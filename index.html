@@ -111,13 +111,18 @@
     .btn-admin:hover { background: var(--gold); color: #07090c; }
 
     .user-welcome-bar {
-      max-width: 1240px; margin: 0.8rem auto 0; padding: 0.6rem 1rem;
+      max-width: 1240px; margin: 0.8rem auto 0; padding: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 0.8rem;
+    }
+    .user-welcome-data {
+      flex: 1 1 450px; min-width: 0; padding: 0.85rem 1rem;
       background: linear-gradient(90deg, rgba(197, 160, 89, 0.12), rgba(15, 19, 26, 0.85));
       border: 1px solid var(--border-gold); border-radius: 10px;
       display: flex; justify-content: space-between; align-items: center;
-      flex-wrap: wrap; gap: 0.6rem;
+      flex-wrap: wrap; gap: 0.8rem;
     }
-    .user-welcome-info { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+    .user-welcome-info { display: flex; align-items: center; gap: 1rem; min-width: 0; flex: 1 1 260px; }
     .user-avatar-badge {
       width: 180px; height: 180px; border-radius: 50%; overflow: hidden;
       background: rgba(197, 160, 89, 0.2); border: 2px solid var(--gold);
@@ -129,8 +134,8 @@
     .user-avatar-badge > i { font-size: 5rem !important; }
     .user-welcome-text h4 { font-size: 1.15rem; font-weight: 700; color: #fff; line-height: 1.5; }
     .user-welcome-text span { font-size: 0.95rem; color: var(--gold-light); font-weight: 500; }
-    .student-welcome-active .user-welcome-text h4 { font-size: 2.3rem; }
-    .student-welcome-active .user-welcome-text span { font-size: 1.9rem; }
+    .student-welcome-active .user-welcome-text h4 { font-size: 2.185rem; }
+    .student-welcome-active .user-welcome-text span { font-size: 1.805rem; }
     .user-welcome-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 0.5rem; flex: 1 1 280px; }
     .user-welcome-actions .btn-top { font-size: 0.85rem !important; padding: 0.45rem 0.75rem !important; }
 
@@ -604,16 +609,17 @@
   </header>
 
   <div id="userWelcomeBar" class="user-welcome-bar" style="display: none;">
-    <div class="user-welcome-info">
-      <div class="user-avatar-badge">
-        <i class="fa-solid fa-user-graduate"></i>
-      </div>
-      <div class="user-welcome-text">
-        <h4 id="welcomeBarName">مرحباً بك يا باشمهندس: ...</h4>
-        <span id="welcomeBarId">الرقم الأكاديمي: ...</span>
-      </div>
+    <div class="user-avatar-badge">
+      <i class="fa-solid fa-user-graduate"></i>
     </div>
-    <div class="user-welcome-actions">
+    <div class="user-welcome-data">
+      <div class="user-welcome-info">
+        <div class="user-welcome-text">
+          <h4 id="welcomeBarName">مرحباً بك يا باشمهندس: ...</h4>
+          <span id="welcomeBarId">الرقم الأكاديمي: ...</span>
+        </div>
+      </div>
+      <div class="user-welcome-actions">
       <button onclick="triggerWisdomModal(false)" class="btn-top btn-outline" style="font-size:0.75rem; padding:0.35rem 0.65rem; color:var(--gold-light); border-color:var(--border-gold);" title="حكمة اليوم">
         <i class="fa-solid fa-lightbulb"></i> حكمة اليوم
       </button>
@@ -623,9 +629,10 @@
       <button onclick="openModal('studentPasswordModal')" class="btn-top btn-outline" style="font-size:0.75rem; padding:0.35rem 0.65rem;">
         <i class="fa-solid fa-key"></i> تغيير كلمة المرور
       </button>
-      <button onclick="logoutSite()" class="btn-top btn-outline" style="font-size:0.75rem; padding:0.35rem 0.65rem; color:var(--danger); border-color:rgba(239,68,68,0.3);">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i> خروج
-      </button>
+        <button onclick="logoutSite()" class="btn-top btn-outline" style="font-size:0.75rem; padding:0.35rem 0.65rem; color:var(--danger); border-color:rgba(239,68,68,0.3);">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> خروج
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1880,13 +1887,11 @@ function updateStudentWelcomeBar() {
     bar.classList.add('student-welcome-active');
     bar.style.display = 'flex';
     document.getElementById('welcomeBarName').innerHTML = `مرحباً بك يا باشمهندس: <span style="color:var(--gold-light);">${escapeHtml(student.name)}</span> 📐`;
-    document.getElementById('welcomeBarId').textContent = `الرقم الأكاديمي: ${student.id} • نظام: ${student.system} • الترتيب: #${student.num}`;
+    document.getElementById('welcomeBarId').textContent = `الرقم الأكاديمي: ${student.id} • نظام: ${student.system}`;
 
-    // إظهار صورة الملف الشخصي في شريط ترحيب الطالب.
-    const welcomeInfoDiv = document.querySelector('.user-welcome-info');
-    if (welcomeInfoDiv) {
-      const avatarContainer = welcomeInfoDiv.querySelector('.user-avatar-badge');
-
+    // إظهار صورة الملف الشخصي مستقلة عن صندوق بيانات الطالب.
+    const avatarContainer = document.querySelector('.user-avatar-badge');
+    if (avatarContainer) {
       if (proj && proj.avatarUrl) {
         avatarContainer.style.overflow = 'hidden';
         avatarContainer.innerHTML = `<img src="${escapeHtml(imageDisplayUrl(proj.avatarUrl))}" alt="صورة الملف الشخصي" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><i class="fa-solid fa-user-graduate" style="display:none;color:var(--gold);font-size:1.1rem"></i>`;
@@ -2922,7 +2927,7 @@ try {
               </div>
               ${statusTag}
             </div>
-            <div class="student-sub">نظام: ${escapeHtml(student.system)} • الترتيب: #${escapeHtml(student.num)}</div>
+            <div class="student-sub">نظام: ${escapeHtml(student.system)}</div>
 
             <div class="project-box">
               <h4>${escapeHtml(projectTitle)}</h4>
