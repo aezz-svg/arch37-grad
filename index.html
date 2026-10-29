@@ -447,6 +447,7 @@
         <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthMode('register')">
           <i class="fa-solid fa-file-arrow-up"></i> إضافة المشروع
         </button>
+        <button class="auth-tab-btn" id="tabVisitorBtn" onclick="switchAuthMode('visitor')"><i class="fa-solid fa-eye"></i> زائر</button>
       </div>
 
       <!-- تسجيل الدخول -->
@@ -581,6 +582,14 @@
           إرسال المشروع للمراجعة والاعتماد الفوري
         </button>
       </form>
+      <div id="visitorGatePanel" style="display:none;text-align:center;padding:0.8rem 0">
+        <i class="fa-solid fa-eye" style="font-size:2rem;color:var(--gold);margin-bottom:0.5rem"></i>
+        <h3 style="color:#fff;margin-bottom:0.5rem">دخول زائر</h3>
+        <p id="visitorGateMessage" style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.9rem"></p>
+        <button id="openVisitorModeButton" type="button" class="btn-top btn-gold" onclick="enterOpenGuestMode()"><i class="fa-solid fa-right-to-bracket"></i> الدخول للتصفح</button>
+        <button id="visitorRequestFromGateButton" type="button" class="btn-top btn-outline" onclick="openVisitorRequestModal()"><i class="fa-regular fa-paper-plane"></i> تقديم طلب زيارة</button>
+        <button id="visitorCheckFromGateButton" type="button" class="btn-top btn-outline" onclick="openVisitorRequestModal(true)"><i class="fa-solid fa-key"></i> متابعة طلب أو دخول بموافقة</button>
+      </div>
     </div>
   </div>
 
@@ -606,11 +615,13 @@
         <i class="fa-solid fa-pen"></i> استبدال الملف وتعديل البيانات
       </button>
 
-      <button class="btn-top btn-admin" onclick="openModal('adminLoginModal')">
+      <button id="headerVisitorRequestBtn" class="btn-top btn-outline" onclick="openVisitorRequestModal()"><i class="fa-solid fa-ticket"></i> طلب زائر</button>
+      <span id="visitorModeBadge" style="display:none;color:var(--success);font-size:0.75rem;font-weight:800">وضع الزيارة مفعل</span>
+      <button id="headerAdminEntryBtn" class="btn-top btn-admin" onclick="openModal('adminLoginModal')">
         <i class="fa-solid fa-shield-halved"></i> المدير
       </button>
 
-      <button class="btn-top btn-outline" onclick="logoutSite()" title="قفل الموقع وتسجيل الخروج">
+      <button id="headerLogoutBtn" class="btn-top btn-outline" onclick="logoutSite()" title="قفل الموقع وتسجيل الخروج">
         <i class="fa-solid fa-power-off" style="color: var(--danger);"></i>
       </button>
     </div>
@@ -736,6 +747,31 @@
         </button>
       </form>
       <div id="checkResultDisplay" style="margin-top:0.8rem; display:none; background:rgba(0,0,0,0.3); border:1px solid var(--border-gold); padding:0.8rem; border-radius:8px;"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="visitorRequestModal">
+    <div class="modal-card" style="max-width:560px">
+      <div class="modal-header"><h3 style="color:var(--gold)"><i class="fa-solid fa-ticket"></i> طلب زائر</h3><button class="btn-close" onclick="closeModal('visitorRequestModal')">&times;</button></div>
+      <div id="visitorRequestFormPanel">
+        <form id="visitorRequestForm" onsubmit="submitVisitorRequest(event)">
+          <div class="form-group"><label>الاسم</label><input id="visitorName" type="text" maxlength="100" required></div>
+          <div class="form-group"><label>وصف الزيارة</label><textarea id="visitorPurpose" rows="2" maxlength="500" required placeholder="سبب الزيارة أو الجهة التي تمثلها"></textarea></div>
+          <div class="form-group"><label>وسيلة التواصل</label><div style="display:flex;gap:.5rem"><select id="visitorContactType"><option value="phone">هاتف</option><option value="whatsapp">واتساب</option><option value="email">بريد إلكتروني</option><option value="telegram">تيليجرام</option><option value="other">أخرى</option></select><input id="visitorContactValue" type="text" maxlength="120" required placeholder="رقم أو بريد أو معرف"></div></div>
+          <div class="form-group"><label>صورة مرفقة للطلب</label><input id="visitorPhotoInput" type="file" accept="image/png,image/jpeg,image/webp" required><small style="color:var(--text-muted)">صورة JPG أو PNG أو WEBP؛ تُضغط تلقائيًا قبل الإرسال.</small></div>
+          <button id="visitorRequestSubmit" type="submit" class="btn-top btn-gold" style="width:100%;justify-content:center"><i class="fa-regular fa-paper-plane"></i> إرسال الطلب للمدير</button>
+        </form>
+      </div>
+      <div id="visitorRequestAccessPanel" style="display:none">
+        <p id="visitorRequestResultMessage" style="color:var(--text-muted);margin-bottom:.7rem"></p>
+        <div id="visitorRequestSecretBox" style="display:none;background:rgba(197,160,89,.1);padding:.7rem;border-radius:8px;margin-bottom:.8rem"></div>
+        <form id="visitorAccessForm" onsubmit="checkVisitorAccess(event)">
+          <div class="form-group"><label>رقم الطلب</label><input id="visitorAccessRequestId" type="text" required autocomplete="off"></div>
+          <div class="form-group"><label>رمز المتابعة</label><input id="visitorAccessCode" type="text" required autocomplete="off"></div>
+          <button type="submit" class="btn-top btn-gold"><i class="fa-solid fa-unlock-keyhole"></i> التحقق والدخول</button>
+        </form>
+        <button type="button" class="btn-top btn-outline" onclick="resetVisitorRequestForm()">تقديم طلب آخر</button>
+      </div>
     </div>
   </div>
 
@@ -891,6 +927,9 @@
         <button class="admin-tab-btn" onclick="switchAdminTab('draftAdminTab', this)">
           <i class="fa-solid fa-folder-open"></i> مسودات بانتظار الطالب (<span id="draftAdminBadge" style="color: var(--info); font-weight: 800;">0</span>)
         </button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('visitorRequestsTab', this)">
+          <i class="fa-solid fa-ticket"></i> طلبات الزيارات (<span id="visitorRequestsBadge" style="color:var(--warning);font-weight:800">0</span>)
+        </button>
         <button class="admin-tab-btn" onclick="switchAdminTab('visitorsTab', this)">
           <i class="fa-solid fa-chart-line"></i> سجل الزيارات والنشاط (<span id="onlineNowBadge" style="color: var(--success); font-weight: 800;">0</span> متصل)
         </button>
@@ -917,6 +956,11 @@
         </button>
       </div>
 
+      <div id="visitorRequestsTab" class="admin-tab-content" style="display:none">
+        <p style="color:var(--text-muted);font-size:0.82rem">طلبات الزوار؛ الموافقة تمنح دخولاً للعرض لمدة 24 ساعة فقط.</p>
+        <div style="overflow-x:auto"><table class="admin-table"><thead><tr><th>الاسم</th><th>وصف الزيارة</th><th>التواصل</th><th>الصورة</th><th>الحالة والصلاحية</th><th>الإجراء</th></tr></thead><tbody id="visitorRequestsTableBody"></tbody></table></div>
+      </div>
+
       <div id="siteSettingsTab" class="admin-tab-content" style="display:none">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0.8rem">
           <div class="form-group"><label>عنوان الجهة</label><input id="siteCfgUniversity" type="text"></div>
@@ -936,7 +980,8 @@
           <label><input id="siteCfgPasswordChange" type="checkbox"> السماح بتغيير كلمة مرور الطالب</label>
           <label><input id="siteCfgFeedback" type="checkbox"> إظهار إرسال الاقتراحات</label>
           <label><input id="siteCfgWisdom" type="checkbox"> إظهار زر حكمة اليوم</label>
-          <label><input id="siteCfgMaintenance" type="checkbox"> تشغيل وضع الصيانة ومنع دخول الطلاب</label>
+          <label><input id="siteCfgGuestMode" type="checkbox"> تفعيل وضع الزيارة: دخول زائر مفتوح دون طلب</label>
+          <label><input id="siteCfgMaintenance" type="checkbox"> تشغيل وضع الصيانة ومنع دخول الطلاب والزوار</label>
         </div>
         <div class="form-group" style="margin-top:0.7rem"><label>رسالة الصيانة للطلاب</label><input id="siteCfgMaintenanceMessage" type="text" maxlength="180"></div>
         <button type="button" onclick="saveSiteConfiguration()" class="btn-top btn-gold" style="margin-top:0.8rem"><i class="fa-solid fa-floppy-disk"></i> حفظ إعدادات الموقع</button>
@@ -1341,8 +1386,8 @@
   </footer>
 
   <script>
-    const DEFAULT_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwe0WhtLwFyup2usxHDZc-PkwM-p7rXsFoGZw1nPxQ_K3OhKI9YSlPpVMPy7h1hu4NtUQ/exec";
-    const LEGACY_APPS_SCRIPT_IDS = ['AKfycbxBBrgbQvQkcsGL_SRqfO-9rv3pKdFNvUELgZ6GzVwN81F6pzcLEDEjSugMqzKdEig4kg', 'AKfycbyMwymfEc2P4nYOPuA0emIUAXIlSeTDy8vHtMArrOoOSOAu_HUhqOkTZWy7lQxygndr1Q', 'AKfycbwjHf0Hc6tDf_r3jDlC8Da18vnlcglmZ4ytdkZYW4fNFDZKZiK9GdVoXxjffseWG8zX9A', 'AKfycbxdECrXKREQr7lONIRimSpeRuL29myMr5qexsCIic7brCnwTJKw7ZqtCUJ5ency0duf6Q', 'AKfycbytfsFNWtp5JoYbBgwECQccagt20j9SW-kFCnkuzyyPToOcjvX4davED_lLAiIqXITKhg', 'AKfycbzU1BKHi7rnBepKtu19gYTHPdMN-5SSYtIVShQkqrYIjx0TSqfN_4B-mLE7SoXWXLJLJw', 'AKfycbwHVJN747M4AxQk3ncKv_qkwz6qP8ayt1X8BwbPgR5M3rFvEc9DRWwr_TCvJ1vFdnd4_w', 'AKfycbyt0_KU0-xDbuQZrWbcHb_R4zA54-jJOAJ6Wrzua-Eipn71YYTTnYJOdz4KY5rX8ZlO_A', 'AKfycbzwO8UkQ2L_pyJXNZf8HidIifdZm-321pBJLWfaX22MsCS8ABnEZnQ-0KwJsAPmqUxaEA', 'AKfycbx1IjYeSY3cm2IxZ5ImfoaH_cntVGb0vAgL1XIr0pXpnQFFzIIvEjtafyzVPo2pFurxCQ', 'AKfycbzDz56Z9TMVMPRYfr2DDOIHfBevQGGzwKvdpCNC-H2JYafMhb07C9Xf8YujzMi54aYikg'];
+    const DEFAULT_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfQq8I9ZzQOPjnYWGFRykXvri3I-A1uBBtG9YsRfUC8zuov5CScGvg6sydpDsr6S7cVQ/exec";
+    const LEGACY_APPS_SCRIPT_IDS = ['AKfycbwe0WhtLwFyup2usxHDZc-PkwM-p7rXsFoGZw1nPxQ_K3OhKI9YSlPpVMPy7h1hu4NtUQ', 'AKfycbxBBrgbQvQkcsGL_SRqfO-9rv3pKdFNvUELgZ6GzVwN81F6pzcLEDEjSugMqzKdEig4kg', 'AKfycbyMwymfEc2P4nYOPuA0emIUAXIlSeTDy8vHtMArrOoOSOAu_HUhqOkTZWy7lQxygndr1Q', 'AKfycbwjHf0Hc6tDf_r3jDlC8Da18vnlcglmZ4ytdkZYW4fNFDZKZiK9GdVoXxjffseWG8zX9A', 'AKfycbxdECrXKREQr7lONIRimSpeRuL29myMr5qexsCIic7brCnwTJKw7ZqtCUJ5ency0duf6Q', 'AKfycbytfsFNWtp5JoYbBgwECQccagt20j9SW-kFCnkuzyyPToOcjvX4davED_lLAiIqXITKhg', 'AKfycbzU1BKHi7rnBepKtu19gYTHPdMN-5SSYtIVShQkqrYIjx0TSqfN_4B-mLE7SoXWXLJLJw', 'AKfycbwHVJN747M4AxQk3ncKv_qkwz6qP8ayt1X8BwbPgR5M3rFvEc9DRWwr_TCvJ1vFdnd4_w', 'AKfycbyt0_KU0-xDbuQZrWbcHb_R4zA54-jJOAJ6Wrzua-Eipn71YYTTnYJOdz4KY5rX8ZlO_A', 'AKfycbzwO8UkQ2L_pyJXNZf8HidIifdZm-321pBJLWfaX22MsCS8ABnEZnQ-0KwJsAPmqUxaEA', 'AKfycbx1IjYeSY3cm2IxZ5ImfoaH_cntVGb0vAgL1XIr0pXpnQFFzIIvEjtafyzVPo2pFurxCQ', 'AKfycbzDz56Z9TMVMPRYfr2DDOIHfBevQGGzwKvdpCNC-H2JYafMhb07C9Xf8YujzMi54aYikg'];
 
     function getActiveScriptUrl() {
       const savedUrl = localStorage.getItem('arch37_custom_script_url');
@@ -1355,7 +1400,7 @@
 
     let APPS_SCRIPT_URL = getActiveScriptUrl();
     let ADMIN_MASTER_SECRET = localStorage.getItem('arch37_admin_pwd') || "admin37";
-    const DEFAULT_SITE_CONFIG = { universityTitle:'جامعة صنعاء | كلية الهندسة', batchTitle:'قسم الهندسة المعمارية — الدفعة 37', badgeText:'المستوى الخامس معماري (92 مهندساً)', heroTitle:'أرشيف البرمجة المعمارية للدفعة 37', heroDescription:'بوابة التوثيق والاستعراض الشامل لكافة مشاريع التخرج ودراسات البرنامج الفراغي والوظيفي، مرتبة تصاعدياً بحسب الرقم الأكاديمي.', headerSize:16, heroSize:29, descriptionSize:15, photoSize:180, allowRegistration:true, allowProjectEdit:true, allowPasswordChange:true, allowFeedback:true, allowWisdom:true, maintenanceMode:false, maintenanceMessage:'نعمل على تحسين الموقع. يرجى المحاولة لاحقاً.' };
+    const DEFAULT_SITE_CONFIG = { universityTitle:'جامعة صنعاء | كلية الهندسة', batchTitle:'قسم الهندسة المعمارية — الدفعة 37', badgeText:'المستوى الخامس معماري (92 مهندساً)', heroTitle:'أرشيف البرمجة المعمارية للدفعة 37', heroDescription:'بوابة التوثيق والاستعراض الشامل لكافة مشاريع التخرج ودراسات البرنامج الفراغي والوظيفي، مرتبة تصاعدياً بحسب الرقم الأكاديمي.', headerSize:16, heroSize:29, descriptionSize:15, photoSize:180, allowRegistration:true, allowProjectEdit:true, allowPasswordChange:true, allowFeedback:true, allowWisdom:true, guestMode:false, maintenanceMode:false, maintenanceMessage:'نعمل على تحسين الموقع. يرجى المحاولة لاحقاً.' };
     function readCachedSiteConfig(){try{return JSON.parse(localStorage.getItem('arch37_site_config')||'{}')||{};}catch{return {};}}
     let siteConfig = { ...DEFAULT_SITE_CONFIG, ...readCachedSiteConfig() };
 
@@ -1554,9 +1599,11 @@
         studentVisits = normalizeStudentMap(result.visits);
         resetRequests = normalizeStudentMap(result.resetReqs);
         if (Array.isArray(result.feedbacks)) feedbackList = result.feedbacks;
+        if (Array.isArray(result.visitRequests)) visitorRequests = result.visitRequests;
         persistPublicCaches();
         renderStudentGrid(sortedRoster);
         updateBadges();
+        loadVisitorRequestsDashboard();
         return true;
       })();
       try {
@@ -1589,6 +1636,7 @@
     let resetRequests = normalizeStudentMap(JSON.parse(localStorage.getItem('arch37_reset_requests_v12')) || {});
     let studentVisits = normalizeStudentMap(JSON.parse(localStorage.getItem('arch37_student_visits')) || {});
     let feedbackList = JSON.parse(localStorage.getItem('arch37_feedbacks')) || [];
+    let visitorRequests = [];
     let currentFilterTime = 'all';
 
     function displayRandomWisdom(forceAnimate = false) {
@@ -1640,6 +1688,90 @@
       openModal('welcomeWisdomModal');
     }
 
+    function switchAuthMode(mode) {
+      if(mode==='visitor'){
+        ['gateLoginForm','gateRegisterForm'].forEach(id=>document.getElementById(id).style.display='none');
+        document.getElementById('visitorGatePanel').style.display='block';
+        ['tabLoginBtn','tabRegisterBtn','tabVisitorBtn'].forEach(id=>document.getElementById(id).classList.toggle('active',id==='tabVisitorBtn'));
+        applySiteConfiguration();return;
+      }
+      clearPasswordFields();
+      const register=mode==='register'&&siteConfig.allowRegistration&&!siteConfig.maintenanceMode;
+      mode=register?'register':'login';
+      document.getElementById('gateLoginForm').style.display=mode==='login'?'block':'none';
+      document.getElementById('gateRegisterForm').style.display=mode==='register'?'block':'none';
+      document.getElementById('visitorGatePanel').style.display='none';
+      ['tabLoginBtn','tabRegisterBtn','tabVisitorBtn'].forEach(id=>document.getElementById(id).classList.toggle('active',id===(mode==='login'?'tabLoginBtn':'tabRegisterBtn')));
+      if(mode==='register'){const cBox=document.getElementById('gateContactsContainer');if(cBox.children.length===0)addContactRow('gateContactsContainer','telegram','');}
+    }
+
+    function isGuestSession(){return sessionStorage.getItem('arch37_authenticated_user')==='guest';}
+
+    function applyVisitorRestrictions(){
+      const guest=isGuestSession();document.body.classList.toggle('visitor-mode',guest);
+      ['headerFeedbackBtn','headerStudentEditBtn','headerAdminEntryBtn','welcomeStudentEditButton','welcomePasswordButton','welcomeWisdomButton','headerVisitorRequestBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=guest?'none':'';});
+      const logoutButton=document.getElementById('headerLogoutBtn');if(logoutButton){logoutButton.style.display='';logoutButton.title=guest?'إنهاء جلسة الزائر':'قفل الموقع وتسجيل الخروج';}
+      const bar=document.getElementById('userWelcomeBar');if(guest&&bar)bar.style.display='none';
+      if(guest)renderStudentGrid(sortedRoster);
+    }
+
+    function enterOpenGuestMode(){
+      if(!siteConfig.guestMode||siteConfig.maintenanceMode){alert('دخول الزوار غير متاح حالياً.');return;}
+      sessionStorage.setItem('arch37_authenticated_user','guest');sessionStorage.setItem('arch37_guest_access_type','open');sessionStorage.removeItem('arch37_guest_expires_at');
+      document.getElementById('gatekeeperScreen').style.display='none';applySiteConfiguration();updateStudentWelcomeBar();renderStudentGrid(sortedRoster);
+    }
+
+    function openVisitorRequestModal(showAccess=false){
+      const formPanel=document.getElementById('visitorRequestFormPanel'),accessPanel=document.getElementById('visitorRequestAccessPanel');
+      const accessOnly=showAccess||!!sessionStorage.getItem('arch37_visit_request_id');
+      formPanel.style.display=accessOnly?'none':'block';accessPanel.style.display=accessOnly?'block':'none';
+      if(accessOnly){document.getElementById('visitorAccessRequestId').value=sessionStorage.getItem('arch37_visit_request_id')||'';document.getElementById('visitorAccessCode').value=sessionStorage.getItem('arch37_visit_access_code')||'';}
+      openModal('visitorRequestModal');
+    }
+
+    function resetVisitorRequestForm(){
+      document.getElementById('visitorRequestForm').reset();document.getElementById('visitorRequestFormPanel').style.display='block';document.getElementById('visitorRequestAccessPanel').style.display='none';document.getElementById('visitorRequestSecretBox').style.display='none';
+    }
+
+    async function compressVisitorPhoto(file){
+      if(!file||!/^image\/(png|jpeg|webp)$/.test(file.type))throw new Error('اختر صورة بصيغة JPG أو PNG أو WEBP.');
+      const bitmap=await createImageBitmap(file);
+      try{
+        const scale=Math.min(1,1100/Math.max(bitmap.width,bitmap.height)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);
+        let blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.78));if(!blob)throw new Error('تعذر تجهيز الصورة.');
+        if(blob.size>950*1024)blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.58));if(!blob||blob.size>1024*1024)throw new Error('الصورة كبيرة؛ اختر صورة أصغر.');
+        const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('تعذر قراءة الصورة.'));reader.readAsDataURL(blob);});
+        return {base64:String(dataUrl).split(',')[1]||'',name:(file.name.replace(/\.[^.]+$/,'')||'visitor-photo')+'.jpg'};
+      }finally{if(bitmap.close)bitmap.close();}
+    }
+
+    async function submitVisitorRequest(event){
+      event.preventDefault();if(siteConfig.maintenanceMode){alert(siteConfig.maintenanceMessage);return;}
+      const button=document.getElementById('visitorRequestSubmit'),photoFile=document.getElementById('visitorPhotoInput').files[0];if(!photoFile){alert('أرفق صورة الطلب.');return;}
+      button.disabled=true;button.textContent='جارٍ إرسال الطلب...';
+      try{
+        const photo=await compressVisitorPhoto(photoFile);
+        const result=await sendPostToCloud({action:'submitVisitorRequest',visitorName:document.getElementById('visitorName').value.trim(),purpose:document.getElementById('visitorPurpose').value.trim(),contactType:document.getElementById('visitorContactType').value,contactValue:document.getElementById('visitorContactValue').value.trim(),photoBase64:photo.base64,photoFileName:photo.name});
+        if(result?.status!=='success')throw new Error(result?.message||'تعذر إرسال الطلب.');
+        sessionStorage.setItem('arch37_visit_request_id',result.requestId);sessionStorage.setItem('arch37_visit_access_code',result.accessCode);
+        document.getElementById('visitorRequestFormPanel').style.display='none';document.getElementById('visitorRequestAccessPanel').style.display='block';
+        document.getElementById('visitorRequestResultMessage').textContent='وصل طلبك للمدير وهو بانتظار المراجعة. بعد الموافقة، أدخل رقم الطلب ورمز المتابعة للدخول لمدة 24 ساعة.';
+        const secret=document.getElementById('visitorRequestSecretBox');secret.style.display='block';secret.textContent=`رقم الطلب: ${result.requestId} — رمز المتابعة: ${result.accessCode} (احتفظ بهما)`;
+        document.getElementById('visitorAccessRequestId').value=result.requestId;document.getElementById('visitorAccessCode').value=result.accessCode;
+      }catch(error){alert(error instanceof Error?error.message:'تعذر إرسال طلب الزيارة.');}
+      finally{button.disabled=false;button.innerHTML='<i class="fa-regular fa-paper-plane"></i> إرسال الطلب للمدير';}
+    }
+
+    async function checkVisitorAccess(event){
+      event.preventDefault();const requestId=document.getElementById('visitorAccessRequestId').value.trim(),accessCode=document.getElementById('visitorAccessCode').value.trim();
+      try{
+        const result=await sendPostToCloud({action:'checkVisitAccess',requestId,accessCode});if(result?.status!=='success')throw new Error(result?.message||'تعذر التحقق من الطلب.');
+        if(!result.active){document.getElementById('visitorRequestResultMessage').textContent='الطلب لم يُعتمد بعد أو انتهت مدة الزيارة. تحقق من البيانات وحاول لاحقاً.';return;}
+        sessionStorage.setItem('arch37_authenticated_user','guest');sessionStorage.setItem('arch37_guest_access_type','approved');sessionStorage.setItem('arch37_guest_expires_at',String(result.expiresAt));
+        closeModal('visitorRequestModal');document.getElementById('gatekeeperScreen').style.display='none';applySiteConfiguration();updateStudentWelcomeBar();renderStudentGrid(sortedRoster);
+      }catch(error){alert(error instanceof Error?error.message:'تعذر التحقق من طلب الزيارة.');}
+    }
+
     function applySiteConfiguration() {
       const textMap = { headerUnivTitle: siteConfig.universityTitle, headerBatchTitle: siteConfig.batchTitle, heroBadgeText: siteConfig.badgeText, heroMainTitle: siteConfig.heroTitle, heroSubDesc: siteConfig.heroDescription };
       Object.entries(textMap).forEach(([id,value]) => { const el=document.getElementById(id); if(el && value !== undefined) el.textContent=String(value); });
@@ -1656,8 +1788,20 @@
       const registerTab=document.getElementById('tabRegisterBtn');
       if(registerTab) registerTab.style.display=siteConfig.allowRegistration && !siteConfig.maintenanceMode?'':'none';
       if((!siteConfig.allowRegistration || siteConfig.maintenanceMode) && document.getElementById('gateRegisterForm')?.style.display !== 'none') switchAuthMode('login');
-      const visibility={headerFeedbackBtn:siteConfig.allowFeedback, headerStudentEditBtn:siteConfig.allowProjectEdit, welcomeStudentEditButton:siteConfig.allowProjectEdit, welcomePasswordButton:siteConfig.allowPasswordChange, welcomeWisdomButton:siteConfig.allowWisdom};
+      const visibility={headerFeedbackBtn:siteConfig.allowFeedback,headerStudentEditBtn:siteConfig.allowProjectEdit,welcomeStudentEditButton:siteConfig.allowProjectEdit,welcomePasswordButton:siteConfig.allowPasswordChange,welcomeWisdomButton:siteConfig.allowWisdom};
       Object.entries(visibility).forEach(([id,enabled])=>{const el=document.getElementById(id);if(el)el.style.display=enabled?'':'none';});
+      const guestBadge=document.getElementById('visitorModeBadge');if(guestBadge)guestBadge.style.display=siteConfig.guestMode?'inline-flex':'none';
+      const guestMessage=document.getElementById('visitorGateMessage');if(guestMessage)guestMessage.textContent=siteConfig.guestMode?'وضع الزيارة مفتوح؛ يمكنك التصفح كزائر دون تقديم طلب.':'قدّم طلب زيارة وانتظر موافقة المدير. الدخول المعتمد صالح لمدة 24 ساعة.';
+      const openGuest=document.getElementById('openVisitorModeButton');if(openGuest)openGuest.style.display=siteConfig.guestMode?'inline-flex':'none';
+      const requestGuest=document.getElementById('visitorRequestFromGateButton');if(requestGuest)requestGuest.style.display=siteConfig.guestMode?'none':'inline-flex';
+      const checkGuest=document.getElementById('visitorCheckFromGateButton');if(checkGuest)checkGuest.style.display=siteConfig.guestMode?'none':'inline-flex';
+      const authVisitorTab=document.getElementById('tabVisitorBtn');if(authVisitorTab)authVisitorTab.style.display=siteConfig.maintenanceMode?'none':'inline-flex';
+      const guestType=sessionStorage.getItem('arch37_guest_access_type'),guestUntil=Number(sessionStorage.getItem('arch37_guest_expires_at')||0);
+      if(isGuestSession()&&((guestType==='open'&&!siteConfig.guestMode)||(guestType==='approved'&&guestUntil<=Date.now())||siteConfig.maintenanceMode)){
+        sessionStorage.removeItem('arch37_authenticated_user');sessionStorage.removeItem('arch37_guest_access_type');sessionStorage.removeItem('arch37_guest_expires_at');
+        const gate=document.getElementById('gatekeeperScreen');if(gate)gate.style.display='flex';
+      }
+      applyVisitorRestrictions();
       if(!siteConfig.allowWisdom){const wisdom=document.getElementById('welcomeWisdomModal');if(wisdom)wisdom.classList.remove('active');}
     }
 
@@ -1666,14 +1810,14 @@
     function fillSiteConfigurationForm(){
       const values={siteCfgUniversity:siteConfig.universityTitle,siteCfgBatch:siteConfig.batchTitle,siteCfgBadge:siteConfig.badgeText,siteCfgHeroTitle:siteConfig.heroTitle,siteCfgHeroDescription:siteConfig.heroDescription,siteCfgHeaderSize:siteConfig.headerSize,siteCfgHeroSize:siteConfig.heroSize,siteCfgDescriptionSize:siteConfig.descriptionSize,siteCfgPhotoSize:siteConfig.photoSize,siteCfgMaintenanceMessage:siteConfig.maintenanceMessage};
       Object.entries(values).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value??'';});
-      const checks={siteCfgRegistration:'allowRegistration',siteCfgProjectEdit:'allowProjectEdit',siteCfgPasswordChange:'allowPasswordChange',siteCfgFeedback:'allowFeedback',siteCfgWisdom:'allowWisdom',siteCfgMaintenance:'maintenanceMode'};
+      const checks={siteCfgRegistration:'allowRegistration',siteCfgProjectEdit:'allowProjectEdit',siteCfgPasswordChange:'allowPasswordChange',siteCfgFeedback:'allowFeedback',siteCfgWisdom:'allowWisdom',siteCfgGuestMode:'guestMode',siteCfgMaintenance:'maintenanceMode'};
       Object.entries(checks).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.checked=!!siteConfig[key];});
     }
 
     async function saveSiteConfiguration(){
       if(sessionStorage.getItem('arch37_authenticated_user')!=='admin'){alert('هذه الإعدادات متاحة للمدير فقط.');return;}
       const read=id=>document.getElementById(id)?.value.trim()||'';
-      const next={universityTitle:read('siteCfgUniversity'),batchTitle:read('siteCfgBatch'),badgeText:read('siteCfgBadge'),heroTitle:read('siteCfgHeroTitle'),heroDescription:read('siteCfgHeroDescription'),headerSize:clampSiteNumber(read('siteCfgHeaderSize'),16,12,48),heroSize:clampSiteNumber(read('siteCfgHeroSize'),29,16,64),descriptionSize:clampSiteNumber(read('siteCfgDescriptionSize'),15,10,32),photoSize:clampSiteNumber(read('siteCfgPhotoSize'),180,48,320),maintenanceMessage:read('siteCfgMaintenanceMessage')||DEFAULT_SITE_CONFIG.maintenanceMessage,allowRegistration:!!document.getElementById('siteCfgRegistration')?.checked,allowProjectEdit:!!document.getElementById('siteCfgProjectEdit')?.checked,allowPasswordChange:!!document.getElementById('siteCfgPasswordChange')?.checked,allowFeedback:!!document.getElementById('siteCfgFeedback')?.checked,allowWisdom:!!document.getElementById('siteCfgWisdom')?.checked,maintenanceMode:!!document.getElementById('siteCfgMaintenance')?.checked};
+      const next={universityTitle:read('siteCfgUniversity'),batchTitle:read('siteCfgBatch'),badgeText:read('siteCfgBadge'),heroTitle:read('siteCfgHeroTitle'),heroDescription:read('siteCfgHeroDescription'),headerSize:clampSiteNumber(read('siteCfgHeaderSize'),16,12,48),heroSize:clampSiteNumber(read('siteCfgHeroSize'),29,16,64),descriptionSize:clampSiteNumber(read('siteCfgDescriptionSize'),15,10,32),photoSize:clampSiteNumber(read('siteCfgPhotoSize'),180,48,320),maintenanceMessage:read('siteCfgMaintenanceMessage')||DEFAULT_SITE_CONFIG.maintenanceMessage,allowRegistration:!!document.getElementById('siteCfgRegistration')?.checked,allowProjectEdit:!!document.getElementById('siteCfgProjectEdit')?.checked,allowPasswordChange:!!document.getElementById('siteCfgPasswordChange')?.checked,allowFeedback:!!document.getElementById('siteCfgFeedback')?.checked,allowWisdom:!!document.getElementById('siteCfgWisdom')?.checked,guestMode:!!document.getElementById('siteCfgGuestMode')?.checked,maintenanceMode:!!document.getElementById('siteCfgMaintenance')?.checked};
       try{const result=await sendPostToCloud({action:'saveSiteConfig',adminPassword:ADMIN_MASTER_SECRET,siteConfig:next});if(result?.status!=='success')throw new Error(result?.message||'تعذر حفظ إعدادات الموقع.');siteConfig={...DEFAULT_SITE_CONFIG,...next};localStorage.setItem('arch37_site_config',JSON.stringify(siteConfig));applySiteConfiguration();alert('تم حفظ الإعدادات وتطبيقها على الموقع.');}
       catch(error){alert(error instanceof Error?error.message:'تعذر حفظ الإعدادات.');}
     }
@@ -1972,7 +2116,7 @@ function updateStudentWelcomeBar() {
   if (!bar) return;
   bar.classList.remove('student-welcome-active');
 
-  if (!activeUser) {
+  if (!activeUser || activeUser === 'guest') {
     bar.style.display = 'none';
     return;
   }
@@ -2011,7 +2155,7 @@ function updateStudentWelcomeBar() {
     function openStudentEditModalDirect() {
       if (!siteConfig.allowProjectEdit && sessionStorage.getItem('arch37_authenticated_user') !== 'admin') { alert('تعديل بيانات الطلاب متوقف حالياً.'); return; }
       const activeUser = sessionStorage.getItem('arch37_authenticated_user');
-      if (activeUser && activeUser !== 'admin') {
+      if (activeUser && activeUser !== 'admin' && activeUser !== 'guest') {
         document.getElementById('editId').value = activeUser;
         verifyRosterStudent('edit');
       }
@@ -2019,7 +2163,7 @@ function updateStudentWelcomeBar() {
     }
 
     function recordStudentVisit(studentId, studentName) {
-      if (!studentId || studentId === 'admin') return;
+      if (!studentId || studentId === 'admin' || studentId === 'guest') return;
       sendPostToCloud({
         action: "recordVisit",
         studentId: studentId,
@@ -2203,23 +2347,6 @@ function updateStudentWelcomeBar() {
       document.querySelectorAll('input[type="password"]').forEach(f => f.value = '');
     }
 
-    function switchAuthMode(mode) {
-      clearPasswordFields();
-      if (mode === 'login') {
-        document.getElementById('gateLoginForm').style.display = 'block';
-        document.getElementById('gateRegisterForm').style.display = 'none';
-        document.getElementById('tabLoginBtn').classList.add('active');
-        document.getElementById('tabRegisterBtn').classList.remove('active');
-      } else {
-        document.getElementById('gateLoginForm').style.display = 'none';
-        document.getElementById('gateRegisterForm').style.display = 'block';
-        document.getElementById('tabLoginBtn').classList.remove('active');
-        document.getElementById('tabRegisterBtn').classList.add('active');
-        const cBox = document.getElementById('gateContactsContainer');
-        if (cBox.children.length === 0) { addContactRow('gateContactsContainer', 'telegram', ''); }
-      }
-    }
-
     function addContactRow(containerId, initialType = 'telegram', initialVal = '') {
       const container = document.getElementById(containerId);
       const row = document.createElement('div');
@@ -2272,10 +2399,6 @@ function updateStudentWelcomeBar() {
       submitBtn.disabled = true;
       submitBtn.textContent = 'جاري التحقق...';
       try {
-        if (enteredPin === ADMIN_MASTER_SECRET) {
-          alert('دخول المدير متاح من خيار «المدير» فقط.');
-          return;
-        }
         if (siteConfig.maintenanceMode) { alert(siteConfig.maintenanceMessage || 'الموقع في وضع الصيانة حالياً.'); return; }
 
         const student = sortedRoster.find(s => s.id === enteredId);
@@ -2306,7 +2429,6 @@ function updateStudentWelcomeBar() {
           triggerWisdomModal(false);
         }
       } catch (err) {
-        if (enteredPin === ADMIN_MASTER_SECRET) sessionStorage.removeItem('arch37_authenticated_user');
         console.error('Login error:', err);
         alert(err instanceof Error ? err.message : 'تعذر التحقق من بيانات الدخول. أعد المحاولة.');
       } finally {
@@ -2850,6 +2972,7 @@ try {
 }
 
     function copyProjectLink(id) {
+      if(isGuestSession())return;
       const p = projectStore[id];
       if (!p) return;
       if (!p.allowShare) { alert('عذراً: صاحب المشروع فضل إبقاء البرمجة للمعاينة داخل الموقع فقط.'); return; }
@@ -2937,6 +3060,9 @@ try {
       const approvedCount = Object.values(projectStore).filter(p => p.approved === true).length;
       stats.textContent = `المشاريع المعتمدة: ${approvedCount} من أصل 92 مهندساً`;
 
+      const visitorView=isGuestSession();
+      if(visitorView) list=list.filter(student=>projectStore[student.id]?.approved===true);
+
       if (list.length === 0) {
         grid.innerHTML = `
           <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">
@@ -2962,7 +3088,7 @@ try {
         if (hasApproved) {
           statusTag = '<span class="status-badge status-active"><i class="fa-solid fa-check-double"></i> تم الاعتماد</span>';
           let contactsHtml = '';
-          if (p.contacts && p.contacts.length > 0) {
+          if (!visitorView && p.contacts && p.contacts.length > 0) {
             contactsHtml = `<div class="contacts-row">` + p.contacts.map(c => `
               <a href="${escapeHtml(safeLinkUrl(generateContactLink(c.type, c.val)))}" target="_blank" rel="noopener noreferrer" class="btn-contact-icon" title="${escapeHtml(c.type)}: ${escapeHtml(c.val)}">
                 <i class="${getContactIconClass(c.type)}"></i>
@@ -3012,6 +3138,7 @@ try {
           `;
         }
 
+        if(visitorView) actionsHtml='';
         const projectTitle = hasApproved ? p.title : (isPending ? pendingApprovals[student.id].title : (hasDraftAdmin ? p.title : 'لم تسجل البرمجة بعد'));
         const projectDesc = hasApproved ? p.desc : (isPending ? pendingApprovals[student.id].desc : (hasDraftAdmin ? 'المشروع مسجل، بانتظار استكمال الطالب لبياناته.' : 'يستكمل المهندس بياناته ويرفق ملفه عند الدخول للمنصة.'));
         const avatarUrl = hasApproved && p.avatarUrl ? imageDisplayUrl(p.avatarUrl) : '';
@@ -3055,6 +3182,7 @@ try {
     }
 
     function viewProjectDetails(id) {
+      if(isGuestSession())return;
       const student = sortedRoster.find(s => s.id === id);
       const proj = projectStore[id];
       if (!student || !proj || !proj.approved) return;
@@ -3146,6 +3274,7 @@ try {
         loadAdminApprovedProjects();
         populateAdminUploadSelect();
         renderFeedbackList();
+        loadVisitorRequestsDashboard();
         fillSiteConfigurationForm();
         applySiteConfiguration();
         openModal('adminDashboardModal');
@@ -3165,6 +3294,18 @@ try {
       btn.classList.add('active');
       if (tabId === 'sourceCodeEditorTab') { loadLiveSourceCodeToEditor(); }
       if (tabId === 'siteSettingsTab') { fillSiteConfigurationForm(); }
+      if (tabId === 'visitorRequestsTab') { loadVisitorRequestsDashboard(); }
+    }
+
+    function loadVisitorRequestsDashboard(){
+      const body=document.getElementById('visitorRequestsTableBody'),badge=document.getElementById('visitorRequestsBadge');if(!body)return;
+      const requests=Array.isArray(visitorRequests)?visitorRequests:[];if(badge)badge.textContent=requests.filter(item=>item.status==='pending').length;body.innerHTML='';
+      if(!requests.length){body.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:1.3rem">لا توجد طلبات زيارات.</td></tr>';return;}
+      requests.slice().reverse().forEach(item=>{const tr=document.createElement('tr');const expires=Number(item.expiresAt);const status=item.status==='approved'?`موافق — حتى ${expires?new Date(expires).toLocaleString('ar'):'—'}`:item.status==='rejected'?'مرفوض':'بانتظار المراجعة';const contact=`${escapeHtml(item.contactType||'')}: ${escapeHtml(item.contactValue||'')}`;const photo=item.photoUrl?`<a class="drive-link-badge" href="${escapeHtml(safeLinkUrl(item.photoUrl))}" target="_blank" rel="noopener noreferrer">فتح الصورة</a>`:'—';const actions=item.status==='pending'?`<button class="btn-top btn-gold" onclick="decideVisitorRequest('${escapeHtml(item.requestId)}','approve')">موافقة 24 ساعة</button> <button class="btn-top btn-outline" onclick="decideVisitorRequest('${escapeHtml(item.requestId)}','reject')">رفض</button>`:'—';tr.innerHTML=`<td>${escapeHtml(item.visitorName||'')}</td><td>${escapeHtml(item.purpose||'')}</td><td>${contact}</td><td>${photo}</td><td>${status}</td><td>${actions}</td>`;body.appendChild(tr);});
+    }
+
+    async function decideVisitorRequest(requestId,decision){
+      try{const result=await sendPostToCloud({action:'decideVisitRequest',adminPassword:ADMIN_MASTER_SECRET,requestId,decision});if(result?.status!=='success')throw new Error(result?.message||'تعذر تحديث طلب الزيارة.');await loadAdminSensitiveData();loadVisitorRequestsDashboard();alert(decision==='approve'?'تمت الموافقة؛ صلاحية الزائر 24 ساعة من الآن.':'تم رفض الطلب.');}catch(error){alert(error instanceof Error?error.message:'تعذر تحديث طلب الزيارة.');}
     }
 
     function loadApprovalsDashboard() {
@@ -3704,6 +3845,8 @@ async function changeAdminPassword() {
 
     function logoutSite() {
       sessionStorage.removeItem('arch37_authenticated_user');
+      sessionStorage.removeItem('arch37_guest_access_type');
+      sessionStorage.removeItem('arch37_guest_expires_at');
       location.reload();
     }
 
@@ -3835,6 +3978,12 @@ async function changeAdminPassword() {
 
     if (sessionStorage.getItem('arch37_authenticated_user') === 'admin') {
       sessionStorage.removeItem('arch37_authenticated_user');
+    }
+    if (sessionStorage.getItem('arch37_authenticated_user') === 'guest') {
+      const guestType=sessionStorage.getItem('arch37_guest_access_type');
+      if((guestType==='approved'&&Number(sessionStorage.getItem('arch37_guest_expires_at')||0)<=Date.now())||(guestType==='open'&&!siteConfig.guestMode)){
+        sessionStorage.removeItem('arch37_authenticated_user');sessionStorage.removeItem('arch37_guest_access_type');sessionStorage.removeItem('arch37_guest_expires_at');
+      }
     }
     if (sessionStorage.getItem('arch37_authenticated_user')) {
       document.getElementById('gatekeeperScreen').style.display = 'none';

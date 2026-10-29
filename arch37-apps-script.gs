@@ -17,7 +17,8 @@ const SHEET_NAMES = [
   "PendingApprovals",
   "Visits",
   "ResetRequests",
-  "Feedbacks"
+  "Feedbacks",
+  "VisitRequests"
 ];
 const DRIVE_UPLOAD_SESSION_PREFIX = "ARCH37_DRIVE_UPLOAD_";
 const DRIVE_UPLOAD_CHUNK_BYTES = 2 * 1024 * 1024;
@@ -62,6 +63,16 @@ function doPost(e) {
     }
   }
 
+  if (data.action === "checkVisitAccess") {
+    try {
+      const config = getSiteConfig_();
+      if (config.maintenanceMode) return jsonResponse({ status: "success", active: false });
+      const request = find(getDatabase_().getSheetByName("VisitRequests"), "requestId", data.requestId);
+      const active = !!request && request.status === "approved" && Number(request.expiresAt) > Date.now() && String(request.accessCode || "") === String(data.accessCode || "");
+      return jsonResponse({ status: "success", active: active, expiresAt: active ? Number(request.expiresAt) : null });
+    } catch (err) { return jsonResponse({ status: "error", message: safeError_(err) }); }
+  }
+
   // إعدادات العرض والصيانة عامة القراءة، ويقتصر تعديلها على المدير.
   if (data.action === "saveSiteConfig") {
     try {
@@ -97,8 +108,6 @@ function doPost(e) {
       const ss = getDatabase_();
       const sid = normalizeId_(data.studentId);
       const pin = normalizePin_(data.pin);
-      // لا يمكن لكلمة مرور المدير إثبات هوية طالب حتى عند إدخال رقم أكاديمي صحيح.
-      if (isValidAdminPassword_(pin)) return jsonResponse({ status: "success", verified: false, approved: false, student: null });
       const project = find(ss.getSheetByName("Projects"), "id", sid);
       const pending = project ? null : find(ss.getSheetByName("PendingApprovals"), "id", sid);
       const record = project || pending;
@@ -124,6 +133,45 @@ function doPost(e) {
 
     const ss = getDatabase_();
     const action = data.action;
+
+    if (action === "submitVisitorRequest") {
+      if (getSiteConfig_().maintenanceMode) return jsonResponse({ status: "error", message: "الموقع في وضع الصيانة حالياً." });
+      requireFields_(data, ["visitorName", "purpose", "contactType", "contactValue", "photoBase64"]);
+      const photoBase64 = String(data.photoBase64 || "").replace(/^data:[^,]+,/, "").replace(/\s/g, "");
+      if (photoBase64.length > 1400000) return jsonResponse({ status: "error", message: "حجم الصورة أكبر من الحد المسموح." });
+      const requestId = "VIS-" + Utilities.getUuid().replace(/-/g, "").slice(0, 10).toUpperCase();
+      const accessCode = Utilities.getUuid().replace(/-/g, "").slice(0, 12).toUpperCase();
+      const fileName = "زيارة-" + requestId + ".jpg";
+      const photo = DriveApp.getFolderById(TARGET_FOLDER_ID).createFile(Utilities.newBlob(Utilities.base64Decode(photoBase64), "image/jpeg", fileName));
+      photo.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      const submittedAt = Date.now();
+      upsert(ss.getSheetByName("VisitRequests"), "requestId", requestId, {
+        requestId: requestId, visitorName: String(data.visitorName).slice(0, 100), purpose: String(data.purpose).slice(0, 500),
+        contactType: String(data.contactType).slice(0, 30), contactValue: String(data.contactValue).slice(0, 120),
+        photoUrl: photo.getUrl(), accessCode: accessCode, status: "pending", submittedAt: submittedAt,
+        approvedAt: "", expiresAt: ""
+      });
+      notifyAdmin("🎟️ [أرشيف 37] طلب زيارة جديد", `الاسم: ${data.visitorName}\nالوصف: ${data.purpose}\nرقم الطلب: ${requestId}`);
+      return jsonResponse({ status: "success", requestId: requestId, accessCode: accessCode });
+    }
+
+    if (action === "decideVisitRequest") {
+      if (!isValidAdminPassword_(data.adminPassword)) return jsonResponse({ status: "error", message: "غير مصرح." });
+      requireFields_(data, ["requestId", "decision"]);
+      const request = find(ss.getSheetByName("VisitRequests"), "requestId", data.requestId);
+      if (!request) return jsonResponse({ status: "error", message: "طلب الزيارة غير موجود." });
+      if (data.decision === "approve") {
+        const approvedAt = Date.now();
+        const expiresAt = approvedAt + 24 * 60 * 60 * 1000;
+        upsert(ss.getSheetByName("VisitRequests"), "requestId", data.requestId, { requestId: data.requestId, status: "approved", approvedAt: approvedAt, expiresAt: expiresAt });
+        return jsonResponse({ status: "success", expiresAt: expiresAt });
+      }
+      if (data.decision === "reject") {
+        upsert(ss.getSheetByName("VisitRequests"), "requestId", data.requestId, { requestId: data.requestId, status: "rejected", approvedAt: "", expiresAt: "" });
+        return jsonResponse({ status: "success" });
+      }
+      return jsonResponse({ status: "error", message: "قرار طلب الزيارة غير صالح." });
+    }
 
     // يغيّر الطالب كلمة مروره بعد التحقق من الرمز الحالي على الخادم.
     if (action === "changeStudentPin") {
@@ -337,8 +385,11 @@ function doPost(e) {
 
 function getDatabase_() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const missing = SHEET_NAMES.filter(name => !ss.getSheetByName(name));
+  const missing = SHEET_NAMES.filter(name => name !== "VisitRequests" && !ss.getSheetByName(name));
   if (missing.length) throw new Error("أوراق مطلوبة غير موجودة: " + missing.join(", "));
+  let visitSheet = ss.getSheetByName("VisitRequests");
+  if (!visitSheet) visitSheet = ss.insertSheet("VisitRequests");
+  if (visitSheet.getLastRow() === 0) visitSheet.appendRow(["requestId", "visitorName", "purpose", "contactType", "contactValue", "photoUrl", "accessCode", "status", "submittedAt", "approvedAt", "expiresAt"]);
   return ss;
 }
 
@@ -352,12 +403,13 @@ function getData_(ss, includePins) {
     visits: toMap(readSheet(ss.getSheetByName("Visits")), "id", includePins),
     resetReqs: toMap(readSheet(ss.getSheetByName("ResetRequests")), "id", includePins),
     feedbacks: readSheet(ss.getSheetByName("Feedbacks")),
+    visitRequests: includePins ? readSheet(ss.getSheetByName("VisitRequests")).map(({ accessCode, ...request }) => request) : [],
     siteConfig: getSiteConfig_()
   };
 }
 
 function getSiteConfig_() {
-  const defaults = { universityTitle:"جامعة صنعاء | كلية الهندسة", batchTitle:"قسم الهندسة المعمارية — الدفعة 37", badgeText:"المستوى الخامس معماري (92 مهندساً)", heroTitle:"أرشيف البرمجة المعمارية للدفعة 37", heroDescription:"بوابة التوثيق والاستعراض الشامل لكافة مشاريع التخرج ودراسات البرنامج الفراغي والوظيفي، مرتبة تصاعدياً بحسب الرقم الأكاديمي.", headerSize:16, heroSize:29, descriptionSize:15, photoSize:180, allowRegistration:true, allowProjectEdit:true, allowPasswordChange:true, allowFeedback:true, allowWisdom:true, maintenanceMode:false, maintenanceMessage:"نعمل على تحسين الموقع. يرجى المحاولة لاحقاً." };
+  const defaults = { universityTitle:"جامعة صنعاء | كلية الهندسة", batchTitle:"قسم الهندسة المعمارية — الدفعة 37", badgeText:"المستوى الخامس معماري (92 مهندساً)", heroTitle:"أرشيف البرمجة المعمارية للدفعة 37", heroDescription:"بوابة التوثيق والاستعراض الشامل لكافة مشاريع التخرج ودراسات البرنامج الفراغي والوظيفي، مرتبة تصاعدياً بحسب الرقم الأكاديمي.", headerSize:16, heroSize:29, descriptionSize:15, photoSize:180, allowRegistration:true, allowProjectEdit:true, allowPasswordChange:true, allowFeedback:true, allowWisdom:true, guestMode:false, maintenanceMode:false, maintenanceMessage:"نعمل على تحسين الموقع. يرجى المحاولة لاحقاً." };
   try { return Object.assign(defaults, JSON.parse(PropertiesService.getScriptProperties().getProperty("ARCH37_SITE_CONFIG") || "{}")); }
   catch (err) { return defaults; }
 }
@@ -374,7 +426,7 @@ function sanitizeSiteConfig_(source) {
     headerSize:number("headerSize",16,12,48), heroSize:number("heroSize",29,16,64),
     descriptionSize:number("descriptionSize",15,10,32), photoSize:number("photoSize",180,48,320),
     allowRegistration:boolean("allowRegistration"), allowProjectEdit:boolean("allowProjectEdit"),
-    allowPasswordChange:boolean("allowPasswordChange"), allowFeedback:boolean("allowFeedback"), allowWisdom:boolean("allowWisdom"),
+    allowPasswordChange:boolean("allowPasswordChange"), allowFeedback:boolean("allowFeedback"), allowWisdom:boolean("allowWisdom"), guestMode:boolean("guestMode"),
     maintenanceMode:boolean("maintenanceMode"), maintenanceMessage:text("maintenanceMessage",180)
   };
 }

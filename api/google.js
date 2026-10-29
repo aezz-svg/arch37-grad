@@ -1,9 +1,10 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwe0WhtLwFyup2usxHDZc-PkwM-p7rXsFoGZw1nPxQ_K3OhKI9YSlPpVMPy7h1hu4NtUQ/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfQq8I9ZzQOPjnYWGFRykXvri3I-A1uBBtG9YsRfUC8zuov5CScGvg6sydpDsr6S7cVQ/exec";
 const ALLOWED_ACTIONS = new Set([
   "getAdminData", "verifyStudent", "registerStudent", "decideApproval",
   "changeAdminPassword", "changeStudentPin",
   "updateProject", "removeProfilePhoto", "recordVisit", "resetStudent", "requestPinReset",
   "approvePinReset", "sendFeedback", "saveLiveCode", "saveSiteConfig",
+  "submitVisitorRequest", "decideVisitRequest", "checkVisitAccess",
   "beginFileUpload", "uploadFileChunk", "getFileUploadStatus", "cancelFileUpload"
 ]);
 
@@ -71,4 +72,7 @@ module.exports = async function handler(req, res) {
   }
 };
 
-module.exports.config = { maxDuration: 240 };
+module.exports.config = {
+  api: { bodyParser: { sizeLimit: "4mb" } },
+  maxDuration: 240
+};
