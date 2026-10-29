@@ -1,9 +1,9 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDz56Z9TMVMPRYfr2DDOIHfBevQGGzwKvdpCNC-H2JYafMhb07C9Xf8YujzMi54aYikg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwe0WhtLwFyup2usxHDZc-PkwM-p7rXsFoGZw1nPxQ_K3OhKI9YSlPpVMPy7h1hu4NtUQ/exec";
 const ALLOWED_ACTIONS = new Set([
   "getAdminData", "verifyStudent", "registerStudent", "decideApproval",
   "changeAdminPassword", "changeStudentPin",
   "updateProject", "removeProfilePhoto", "recordVisit", "resetStudent", "requestPinReset",
-  "approvePinReset", "sendFeedback", "saveLiveCode",
+  "approvePinReset", "sendFeedback", "saveLiveCode", "saveSiteConfig",
   "beginFileUpload", "uploadFileChunk", "getFileUploadStatus", "cancelFileUpload"
 ]);
 

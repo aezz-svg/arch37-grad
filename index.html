@@ -421,6 +421,10 @@
     }
 
     footer { border-top: 1px solid var(--border-subtle); text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.82rem; width: 100%; }
+    .brand-text h1 { font-size: var(--arch37-header-size, 1rem); }
+    .hero h2 { font-size: var(--arch37-hero-size, 1.8rem); }
+    .hero p { font-size: var(--arch37-description-size, 0.92rem); }
+    .user-avatar-badge { max-width: 35vw; max-height: 35vw; }
   </style>
 </head>
 <body>
@@ -580,6 +584,10 @@
     </div>
   </div>
 
+  <div id="siteMaintenanceOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(7,9,12,.98);align-items:center;justify-content:center;padding:1rem;text-align:center">
+    <div class="auth-card"><i class="fa-solid fa-screwdriver-wrench" style="font-size:2.5rem;color:var(--gold);margin-bottom:0.8rem"></i><h2 style="color:#fff">الموقع في وضع الصيانة</h2><p id="siteMaintenanceMessage" style="color:var(--text-muted);margin:0.7rem 0 1.2rem"></p><button class="btn-top btn-gold" onclick="openModal('adminLoginModal')"><i class="fa-solid fa-shield-halved"></i> دخول المدير</button></div>
+  </div>
+
   <header>
     <div class="brand">
       <div class="brand-logo"><i class="fa-solid fa-drafting-compass"></i></div>
@@ -590,11 +598,11 @@
     </div>
     
     <div class="header-actions">
-      <button class="btn-top btn-outline" onclick="openModal('feedbackModal')">
+      <button id="headerFeedbackBtn" class="btn-top btn-outline" onclick="openModal('feedbackModal')">
         <i class="fa-regular fa-comment-dots"></i> اقتراح
       </button>
 
-      <button class="btn-top btn-outline" onclick="openStudentEditModalDirect()">
+      <button id="headerStudentEditBtn" class="btn-top btn-outline" onclick="openStudentEditModalDirect()">
         <i class="fa-solid fa-pen"></i> استبدال الملف وتعديل البيانات
       </button>
 
@@ -620,13 +628,13 @@
         </div>
       </div>
       <div class="user-welcome-actions">
-      <button onclick="triggerWisdomModal(false)" class="btn-top btn-outline" style="font-size:0.75rem; padding:0.35rem 0.65rem; color:var(--gold-light); border-color:var(--border-gold);" title="حكمة اليوم">
+      <button id="welcomeWisdomButton" onclick="triggerWisdomModal(false)" class="btn-top btn-outline" style="font-size:0.75rem; padding:0.35rem 0.65rem; color:var(--gold-light); border-color:var(--border-gold);" title="حكمة اليوم">
         <i class="fa-solid fa-lightbulb"></i> حكمة اليوم
       </button>
-      <button onclick="openStudentEditModalDirect()" class="btn-top btn-gold" style="font-size:0.75rem; padding:0.35rem 0.65rem;">
+      <button id="welcomeStudentEditButton" onclick="openStudentEditModalDirect()" class="btn-top btn-gold" style="font-size:0.75rem; padding:0.35rem 0.65rem;">
         <i class="fa-solid fa-pen-to-square"></i> تعديل مشروعي
       </button>
-      <button onclick="openModal('studentPasswordModal')" class="btn-top btn-outline" style="font-size:0.75rem; padding:0.35rem 0.65rem;">
+      <button id="welcomePasswordButton" onclick="openModal('studentPasswordModal')" class="btn-top btn-outline" style="font-size:0.75rem; padding:0.35rem 0.65rem;">
         <i class="fa-solid fa-key"></i> تغيير كلمة المرور
       </button>
         <button onclick="logoutSite()" class="btn-top btn-outline" style="font-size:0.75rem; padding:0.35rem 0.65rem; color:var(--danger); border-color:rgba(239,68,68,0.3);">
@@ -901,9 +909,38 @@
         <button class="admin-tab-btn" onclick="switchAdminTab('securityTab', this)">
           <i class="fa-solid fa-sliders"></i> أمان الحساب
         </button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('siteSettingsTab', this)">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> إعدادات الواجهة والصيانة
+        </button>
         <button class="admin-tab-btn" onclick="switchAdminTab('sourceCodeEditorTab', this)">
           <i class="fa-solid fa-code"></i> محرر الكود المباشر
         </button>
+      </div>
+
+      <div id="siteSettingsTab" class="admin-tab-content" style="display:none">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0.8rem">
+          <div class="form-group"><label>عنوان الجهة</label><input id="siteCfgUniversity" type="text"></div>
+          <div class="form-group"><label>اسم القسم والدفعة</label><input id="siteCfgBatch" type="text"></div>
+          <div class="form-group"><label>شارة الصفحة الرئيسية</label><input id="siteCfgBadge" type="text"></div>
+          <div class="form-group"><label>عنوان الصفحة الرئيسية</label><input id="siteCfgHeroTitle" type="text"></div>
+          <div class="form-group" style="grid-column:1/-1"><label>وصف الصفحة الرئيسية</label><textarea id="siteCfgHeroDescription" rows="2"></textarea></div>
+          <div class="form-group"><label>حجم عنوان الجهة (px)</label><input id="siteCfgHeaderSize" type="number" min="12" max="48"></div>
+          <div class="form-group"><label>حجم عنوان الصفحة الرئيسية (px)</label><input id="siteCfgHeroSize" type="number" min="16" max="64"></div>
+          <div class="form-group"><label>حجم وصف الصفحة (px)</label><input id="siteCfgDescriptionSize" type="number" min="10" max="32"></div>
+          <div class="form-group"><label>حجم صورة الملف الشخصي (px)</label><input id="siteCfgPhotoSize" type="number" min="48" max="320" step="4"></div>
+        </div>
+        <h4 style="color:var(--gold-light);margin:1rem 0 0.5rem">تفعيل أو إيقاف أوامر الموقع</h4>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0.5rem">
+          <label><input id="siteCfgRegistration" type="checkbox"> السماح بتسجيل الطلاب الجدد</label>
+          <label><input id="siteCfgProjectEdit" type="checkbox"> السماح للطلاب بتعديل بياناتهم</label>
+          <label><input id="siteCfgPasswordChange" type="checkbox"> السماح بتغيير كلمة مرور الطالب</label>
+          <label><input id="siteCfgFeedback" type="checkbox"> إظهار إرسال الاقتراحات</label>
+          <label><input id="siteCfgWisdom" type="checkbox"> إظهار زر حكمة اليوم</label>
+          <label><input id="siteCfgMaintenance" type="checkbox"> تشغيل وضع الصيانة ومنع دخول الطلاب</label>
+        </div>
+        <div class="form-group" style="margin-top:0.7rem"><label>رسالة الصيانة للطلاب</label><input id="siteCfgMaintenanceMessage" type="text" maxlength="180"></div>
+        <button type="button" onclick="saveSiteConfiguration()" class="btn-top btn-gold" style="margin-top:0.8rem"><i class="fa-solid fa-floppy-disk"></i> حفظ إعدادات الموقع</button>
+        <p style="color:var(--text-muted);font-size:0.75rem;margin-top:0.5rem">تُحفظ الإعدادات في الخادم وتظهر على أجهزة الطلاب بعد المزامنة.</p>
       </div>
 
       <!-- تبويب طلبات الاعتماد -->
@@ -1125,6 +1162,12 @@
             </button>
           </div>
         </div>
+        <div style="display:flex;gap:0.4rem;align-items:center;margin:0.5rem 0;flex-wrap:wrap">
+          <input id="liveCodeSearchInput" type="search" placeholder="ابحث عن كود أو كتابة..." onkeydown="handleLiveCodeSearchKey(event)" style="flex:1;min-width:220px">
+          <button type="button" class="btn-top btn-outline" onclick="searchLiveCodeMatch(-1)">السابق</button>
+          <button type="button" class="btn-top btn-outline" onclick="searchLiveCodeMatch(1)">التالي</button>
+          <span id="liveCodeSearchStatus" style="color:var(--text-muted);font-size:0.75rem"></span>
+        </div>
         <textarea id="liveSourceCodeEditor" class="code-editor-area" spellcheck="false" placeholder="جاري قراءة كود الموقع..."></textarea>
       </div>
     </div>
@@ -1298,8 +1341,8 @@
   </footer>
 
   <script>
-    const DEFAULT_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDz56Z9TMVMPRYfr2DDOIHfBevQGGzwKvdpCNC-H2JYafMhb07C9Xf8YujzMi54aYikg/exec";
-    const LEGACY_APPS_SCRIPT_IDS = ['AKfycbxBBrgbQvQkcsGL_SRqfO-9rv3pKdFNvUELgZ6GzVwN81F6pzcLEDEjSugMqzKdEig4kg', 'AKfycbyMwymfEc2P4nYOPuA0emIUAXIlSeTDy8vHtMArrOoOSOAu_HUhqOkTZWy7lQxygndr1Q', 'AKfycbwjHf0Hc6tDf_r3jDlC8Da18vnlcglmZ4ytdkZYW4fNFDZKZiK9GdVoXxjffseWG8zX9A', 'AKfycbxdECrXKREQr7lONIRimSpeRuL29myMr5qexsCIic7brCnwTJKw7ZqtCUJ5ency0duf6Q', 'AKfycbytfsFNWtp5JoYbBgwECQccagt20j9SW-kFCnkuzyyPToOcjvX4davED_lLAiIqXITKhg', 'AKfycbzU1BKHi7rnBepKtu19gYTHPdMN-5SSYtIVShQkqrYIjx0TSqfN_4B-mLE7SoXWXLJLJw', 'AKfycbwHVJN747M4AxQk3ncKv_qkwz6qP8ayt1X8BwbPgR5M3rFvEc9DRWwr_TCvJ1vFdnd4_w', 'AKfycbyt0_KU0-xDbuQZrWbcHb_R4zA54-jJOAJ6Wrzua-Eipn71YYTTnYJOdz4KY5rX8ZlO_A', 'AKfycbzwO8UkQ2L_pyJXNZf8HidIifdZm-321pBJLWfaX22MsCS8ABnEZnQ-0KwJsAPmqUxaEA', 'AKfycbx1IjYeSY3cm2IxZ5ImfoaH_cntVGb0vAgL1XIr0pXpnQFFzIIvEjtafyzVPo2pFurxCQ'];
+    const DEFAULT_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwe0WhtLwFyup2usxHDZc-PkwM-p7rXsFoGZw1nPxQ_K3OhKI9YSlPpVMPy7h1hu4NtUQ/exec";
+    const LEGACY_APPS_SCRIPT_IDS = ['AKfycbxBBrgbQvQkcsGL_SRqfO-9rv3pKdFNvUELgZ6GzVwN81F6pzcLEDEjSugMqzKdEig4kg', 'AKfycbyMwymfEc2P4nYOPuA0emIUAXIlSeTDy8vHtMArrOoOSOAu_HUhqOkTZWy7lQxygndr1Q', 'AKfycbwjHf0Hc6tDf_r3jDlC8Da18vnlcglmZ4ytdkZYW4fNFDZKZiK9GdVoXxjffseWG8zX9A', 'AKfycbxdECrXKREQr7lONIRimSpeRuL29myMr5qexsCIic7brCnwTJKw7ZqtCUJ5ency0duf6Q', 'AKfycbytfsFNWtp5JoYbBgwECQccagt20j9SW-kFCnkuzyyPToOcjvX4davED_lLAiIqXITKhg', 'AKfycbzU1BKHi7rnBepKtu19gYTHPdMN-5SSYtIVShQkqrYIjx0TSqfN_4B-mLE7SoXWXLJLJw', 'AKfycbwHVJN747M4AxQk3ncKv_qkwz6qP8ayt1X8BwbPgR5M3rFvEc9DRWwr_TCvJ1vFdnd4_w', 'AKfycbyt0_KU0-xDbuQZrWbcHb_R4zA54-jJOAJ6Wrzua-Eipn71YYTTnYJOdz4KY5rX8ZlO_A', 'AKfycbzwO8UkQ2L_pyJXNZf8HidIifdZm-321pBJLWfaX22MsCS8ABnEZnQ-0KwJsAPmqUxaEA', 'AKfycbx1IjYeSY3cm2IxZ5ImfoaH_cntVGb0vAgL1XIr0pXpnQFFzIIvEjtafyzVPo2pFurxCQ', 'AKfycbzDz56Z9TMVMPRYfr2DDOIHfBevQGGzwKvdpCNC-H2JYafMhb07C9Xf8YujzMi54aYikg'];
 
     function getActiveScriptUrl() {
       const savedUrl = localStorage.getItem('arch37_custom_script_url');
@@ -1312,6 +1355,9 @@
 
     let APPS_SCRIPT_URL = getActiveScriptUrl();
     let ADMIN_MASTER_SECRET = localStorage.getItem('arch37_admin_pwd') || "admin37";
+    const DEFAULT_SITE_CONFIG = { universityTitle:'جامعة صنعاء | كلية الهندسة', batchTitle:'قسم الهندسة المعمارية — الدفعة 37', badgeText:'المستوى الخامس معماري (92 مهندساً)', heroTitle:'أرشيف البرمجة المعمارية للدفعة 37', heroDescription:'بوابة التوثيق والاستعراض الشامل لكافة مشاريع التخرج ودراسات البرنامج الفراغي والوظيفي، مرتبة تصاعدياً بحسب الرقم الأكاديمي.', headerSize:16, heroSize:29, descriptionSize:15, photoSize:180, allowRegistration:true, allowProjectEdit:true, allowPasswordChange:true, allowFeedback:true, allowWisdom:true, maintenanceMode:false, maintenanceMessage:'نعمل على تحسين الموقع. يرجى المحاولة لاحقاً.' };
+    function readCachedSiteConfig(){try{return JSON.parse(localStorage.getItem('arch37_site_config')||'{}')||{};}catch{return {};}}
+    let siteConfig = { ...DEFAULT_SITE_CONFIG, ...readCachedSiteConfig() };
 
     function escapeHtml(value) {
       return String(value ?? '').replace(/[&<>"']/g, character => ({
@@ -1568,6 +1614,7 @@
     }
 
     function triggerWisdomModal(isFirstTime = false) {
+      if (!siteConfig.allowWisdom) return;
       const activeUser = sessionStorage.getItem('arch37_authenticated_user');
       const student = sortedRoster.find(s => s.id === activeUser);
       const studentName = student ? student.name : "المهندس";
@@ -1592,6 +1639,58 @@
       displayRandomWisdom(false);
       openModal('welcomeWisdomModal');
     }
+
+    function applySiteConfiguration() {
+      const textMap = { headerUnivTitle: siteConfig.universityTitle, headerBatchTitle: siteConfig.batchTitle, heroBadgeText: siteConfig.badgeText, heroMainTitle: siteConfig.heroTitle, heroSubDesc: siteConfig.heroDescription };
+      Object.entries(textMap).forEach(([id,value]) => { const el=document.getElementById(id); if(el && value !== undefined) el.textContent=String(value); });
+      document.title = `${siteConfig.heroTitle || DEFAULT_SITE_CONFIG.heroTitle} | الدفعة 37`;
+      const root=document.documentElement;
+      root.style.setProperty('--arch37-header-size', `${clampSiteNumber(siteConfig.headerSize,16,12,48)}px`);
+      root.style.setProperty('--arch37-hero-size', `${clampSiteNumber(siteConfig.heroSize,29,16,64)}px`);
+      root.style.setProperty('--arch37-description-size', `${clampSiteNumber(siteConfig.descriptionSize,15,10,32)}px`);
+      const photo=clampSiteNumber(siteConfig.photoSize,180,48,320);
+      document.querySelectorAll('.user-avatar-badge').forEach(el => { el.style.width=`${photo}px`; el.style.height=`${photo}px`; el.style.flexBasis=`${photo}px`; });
+      const showMaintenance=!!siteConfig.maintenanceMode && sessionStorage.getItem('arch37_authenticated_user') !== 'admin';
+      const overlay=document.getElementById('siteMaintenanceOverlay');
+      if(overlay){ overlay.style.display=showMaintenance?'flex':'none'; const msg=document.getElementById('siteMaintenanceMessage'); if(msg) msg.textContent=siteConfig.maintenanceMessage || DEFAULT_SITE_CONFIG.maintenanceMessage; }
+      const registerTab=document.getElementById('tabRegisterBtn');
+      if(registerTab) registerTab.style.display=siteConfig.allowRegistration && !siteConfig.maintenanceMode?'':'none';
+      if((!siteConfig.allowRegistration || siteConfig.maintenanceMode) && document.getElementById('gateRegisterForm')?.style.display !== 'none') switchAuthMode('login');
+      const visibility={headerFeedbackBtn:siteConfig.allowFeedback, headerStudentEditBtn:siteConfig.allowProjectEdit, welcomeStudentEditButton:siteConfig.allowProjectEdit, welcomePasswordButton:siteConfig.allowPasswordChange, welcomeWisdomButton:siteConfig.allowWisdom};
+      Object.entries(visibility).forEach(([id,enabled])=>{const el=document.getElementById(id);if(el)el.style.display=enabled?'':'none';});
+      if(!siteConfig.allowWisdom){const wisdom=document.getElementById('welcomeWisdomModal');if(wisdom)wisdom.classList.remove('active');}
+    }
+
+    function clampSiteNumber(value,fallback,min,max){const number=Number(value);return Number.isFinite(number)?Math.max(min,Math.min(max,number)):fallback;}
+
+    function fillSiteConfigurationForm(){
+      const values={siteCfgUniversity:siteConfig.universityTitle,siteCfgBatch:siteConfig.batchTitle,siteCfgBadge:siteConfig.badgeText,siteCfgHeroTitle:siteConfig.heroTitle,siteCfgHeroDescription:siteConfig.heroDescription,siteCfgHeaderSize:siteConfig.headerSize,siteCfgHeroSize:siteConfig.heroSize,siteCfgDescriptionSize:siteConfig.descriptionSize,siteCfgPhotoSize:siteConfig.photoSize,siteCfgMaintenanceMessage:siteConfig.maintenanceMessage};
+      Object.entries(values).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value??'';});
+      const checks={siteCfgRegistration:'allowRegistration',siteCfgProjectEdit:'allowProjectEdit',siteCfgPasswordChange:'allowPasswordChange',siteCfgFeedback:'allowFeedback',siteCfgWisdom:'allowWisdom',siteCfgMaintenance:'maintenanceMode'};
+      Object.entries(checks).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.checked=!!siteConfig[key];});
+    }
+
+    async function saveSiteConfiguration(){
+      if(sessionStorage.getItem('arch37_authenticated_user')!=='admin'){alert('هذه الإعدادات متاحة للمدير فقط.');return;}
+      const read=id=>document.getElementById(id)?.value.trim()||'';
+      const next={universityTitle:read('siteCfgUniversity'),batchTitle:read('siteCfgBatch'),badgeText:read('siteCfgBadge'),heroTitle:read('siteCfgHeroTitle'),heroDescription:read('siteCfgHeroDescription'),headerSize:clampSiteNumber(read('siteCfgHeaderSize'),16,12,48),heroSize:clampSiteNumber(read('siteCfgHeroSize'),29,16,64),descriptionSize:clampSiteNumber(read('siteCfgDescriptionSize'),15,10,32),photoSize:clampSiteNumber(read('siteCfgPhotoSize'),180,48,320),maintenanceMessage:read('siteCfgMaintenanceMessage')||DEFAULT_SITE_CONFIG.maintenanceMessage,allowRegistration:!!document.getElementById('siteCfgRegistration')?.checked,allowProjectEdit:!!document.getElementById('siteCfgProjectEdit')?.checked,allowPasswordChange:!!document.getElementById('siteCfgPasswordChange')?.checked,allowFeedback:!!document.getElementById('siteCfgFeedback')?.checked,allowWisdom:!!document.getElementById('siteCfgWisdom')?.checked,maintenanceMode:!!document.getElementById('siteCfgMaintenance')?.checked};
+      try{const result=await sendPostToCloud({action:'saveSiteConfig',adminPassword:ADMIN_MASTER_SECRET,siteConfig:next});if(result?.status!=='success')throw new Error(result?.message||'تعذر حفظ إعدادات الموقع.');siteConfig={...DEFAULT_SITE_CONFIG,...next};localStorage.setItem('arch37_site_config',JSON.stringify(siteConfig));applySiteConfiguration();alert('تم حفظ الإعدادات وتطبيقها على الموقع.');}
+      catch(error){alert(error instanceof Error?error.message:'تعذر حفظ الإعدادات.');}
+    }
+
+    function searchLiveCodeMatch(direction=1){
+      const input=document.getElementById('liveCodeSearchInput'),editor=document.getElementById('liveSourceCodeEditor'),status=document.getElementById('liveCodeSearchStatus');
+      if(!input||!editor||!status)return;const query=input.value;if(!query){status.textContent='اكتب كلمة للبحث.';return;}
+      const source=editor.value.toLocaleLowerCase(),term=query.toLocaleLowerCase(),matches=[];let from=0,index;
+      while((index=source.indexOf(term,from))!==-1){matches.push(index);from=index+Math.max(1,term.length);}
+      if(!matches.length){status.textContent='لا توجد نتائج.';return;}
+      let target=direction>0?matches.find(pos=>pos>editor.selectionStart):[...matches].reverse().find(pos=>pos<editor.selectionStart);
+      if(target===undefined)target=direction>0?matches[0]:matches[matches.length-1];
+      editor.focus();editor.setSelectionRange(target,target+term.length);
+      editor.scrollTop=Math.max(0,editor.value.slice(0,target).split('\n').length*19-editor.clientHeight/2);
+      const number=matches.indexOf(target)+1,line=editor.value.slice(0,target).split('\n').length;status.textContent=`${number} من ${matches.length} — السطر ${line}`;
+    }
+    function handleLiveCodeSearchKey(event){if(event.key==='Enter'){event.preventDefault();searchLiveCodeMatch(event.shiftKey?-1:1);}}
 
     function saveCustomScriptUrl() {
       const input = document.getElementById('adminCustomScriptUrlInput');
@@ -1671,6 +1770,11 @@
         studentVisits = Object.assign({}, studentVisits, normalizeStudentMap(result.visits));
         resetRequests = normalizeStudentMap(result.resetReqs);
         if (result.feedbacks && result.feedbacks.length > 0) feedbackList = result.feedbacks;
+        if (result.siteConfig && typeof result.siteConfig === 'object') {
+          siteConfig = { ...DEFAULT_SITE_CONFIG, ...result.siteConfig };
+          localStorage.setItem('arch37_site_config', JSON.stringify(siteConfig));
+          applySiteConfiguration();
+        }
 
         if (sessionStorage.getItem('arch37_authenticated_user') === 'admin') await loadAdminSensitiveData();
 
@@ -1905,6 +2009,7 @@ function updateStudentWelcomeBar() {
   }
 }
     function openStudentEditModalDirect() {
+      if (!siteConfig.allowProjectEdit && sessionStorage.getItem('arch37_authenticated_user') !== 'admin') { alert('تعديل بيانات الطلاب متوقف حالياً.'); return; }
       const activeUser = sessionStorage.getItem('arch37_authenticated_user');
       if (activeUser && activeUser !== 'admin') {
         document.getElementById('editId').value = activeUser;
@@ -2168,13 +2273,10 @@ function updateStudentWelcomeBar() {
       submitBtn.textContent = 'جاري التحقق...';
       try {
         if (enteredPin === ADMIN_MASTER_SECRET) {
-          sessionStorage.setItem('arch37_authenticated_user', 'admin');
-          await loadAdminSensitiveData();
-          document.getElementById('gatekeeperScreen').style.display = 'none';
-          clearPasswordFields();
-          updateStudentWelcomeBar();
+          alert('دخول المدير متاح من خيار «المدير» فقط.');
           return;
         }
+        if (siteConfig.maintenanceMode) { alert(siteConfig.maintenanceMessage || 'الموقع في وضع الصيانة حالياً.'); return; }
 
         const student = sortedRoster.find(s => s.id === enteredId);
         if (!student) { alert('الرقم الأكاديمي غير مسجل في كشف الدفعة 37!'); return; }
@@ -2476,6 +2578,7 @@ function updateStudentWelcomeBar() {
     async function handleGateRegister(e) {
       e.preventDefault();
       const id = normalizeStudentId(document.getElementById('gateRegId').value);
+      if (!siteConfig.allowRegistration || siteConfig.maintenanceMode) { alert(siteConfig.maintenanceMode ? siteConfig.maintenanceMessage : 'تسجيل الطلاب متوقف حالياً.'); return; }
       const pin = document.getElementById('gateRegPin').value.trim();
       const title = document.getElementById('gateRegTitle').value.trim();
       const desc = document.getElementById('gateRegDesc').value.trim();
@@ -2768,6 +2871,7 @@ try {
 
     async function handleSendFeedback(e) {
       e.preventDefault();
+      if (!siteConfig.allowFeedback) { alert('إرسال الاقتراحات متوقف حالياً.'); return; }
       const sender = document.getElementById('feedbackSender').value.trim() || "مهندس (مجهول)";
       const text = document.getElementById('feedbackText').value.trim();
 
@@ -3042,6 +3146,8 @@ try {
         loadAdminApprovedProjects();
         populateAdminUploadSelect();
         renderFeedbackList();
+        fillSiteConfigurationForm();
+        applySiteConfiguration();
         openModal('adminDashboardModal');
       } catch (err) {
         sessionStorage.removeItem('arch37_authenticated_user');
@@ -3057,9 +3163,8 @@ try {
       document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(tabId).style.display = 'block';
       btn.classList.add('active');
-      if (tabId === 'sourceCodeEditorTab') {
-        loadLiveSourceCodeToEditor();
-      }
+      if (tabId === 'sourceCodeEditorTab') { loadLiveSourceCodeToEditor(); }
+      if (tabId === 'siteSettingsTab') { fillSiteConfigurationForm(); }
     }
 
     function loadApprovalsDashboard() {
@@ -3342,6 +3447,7 @@ try {
 
         const res = await sendPostToCloud({
           action: "updateProject",
+          adminPassword: ADMIN_MASTER_SECRET,
           studentId: id,
           studentName: student ? student.name : "",
           system: student ? student.system : "عام",
@@ -3391,6 +3497,7 @@ try {
       if (newUrl !== null) {
         await sendPostToCloud({
           action: "updateProject",
+          adminPassword: ADMIN_MASTER_SECRET,
           studentId: studentId,
           studentName: student.name,
           fileUrl: newUrl.trim()
@@ -3538,6 +3645,7 @@ try {
       const student = sortedRoster.find(s => s.id === id);
       await sendPostToCloud({
         action: "updateProject",
+        adminPassword: ADMIN_MASTER_SECRET,
         studentId: id,
         studentName: student ? student.name : "",
         title: document.getElementById('adminEditTitle').value.trim(),
@@ -3575,6 +3683,7 @@ async function changeAdminPassword() {
     }
 
     async function changeStudentPassword() {
+      if (!siteConfig.allowPasswordChange) { alert('تغيير كلمة مرور الطالب متوقف حالياً.'); return; }
       const studentId = sessionStorage.getItem('arch37_authenticated_user');
       if (!studentId || studentId === 'admin') { alert('سجّل دخولك بحساب الطالب أولاً.'); return; }
       const currentPin = document.getElementById('studentCurrentPassword').value.trim();
@@ -3724,6 +3833,9 @@ async function changeAdminPassword() {
     }
     // ==========================================
 
+    if (sessionStorage.getItem('arch37_authenticated_user') === 'admin') {
+      sessionStorage.removeItem('arch37_authenticated_user');
+    }
     if (sessionStorage.getItem('arch37_authenticated_user')) {
       document.getElementById('gatekeeperScreen').style.display = 'none';
       updateStudentWelcomeBar();
@@ -3732,6 +3844,7 @@ async function changeAdminPassword() {
 
     renderStudentGrid(sortedRoster);
     updateBadges();
+    applySiteConfiguration();
     syncWithCloudDatabase();
     setInterval(() => syncWithCloudDatabase(), 15000);
   </script>

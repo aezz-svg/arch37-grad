@@ -62,6 +62,16 @@ function doPost(e) {
     }
   }
 
+  // إعدادات العرض والصيانة عامة القراءة، ويقتصر تعديلها على المدير.
+  if (data.action === "saveSiteConfig") {
+    try {
+      if (!isValidAdminPassword_(data.adminPassword)) return jsonResponse({ status: "error", message: "غير مصرح." });
+      const config = sanitizeSiteConfig_(data.siteConfig);
+      PropertiesService.getScriptProperties().setProperty("ARCH37_SITE_CONFIG", JSON.stringify(config));
+      return jsonResponse({ status: "success", siteConfig: config });
+    } catch (err) { return jsonResponse({ status: "error", message: safeError_(err) }); }
+  }
+
   // تغيير كلمة مرور المدير يتم عبر الخادم، ولا يحفظ التغيير في متصفح واحد فقط.
   if (data.action === "changeAdminPassword") {
     try {
@@ -82,9 +92,13 @@ function doPost(e) {
   // يتحقق من رمز الطالب على الخادم من دون إرسال الرموز في استجابة القراءة العامة.
   if (data.action === "verifyStudent") {
     try {
+      const siteConfig = getSiteConfig_();
+      if (siteConfig.maintenanceMode) return jsonResponse({ status: "success", verified: false, approved: false, student: null });
       const ss = getDatabase_();
       const sid = normalizeId_(data.studentId);
       const pin = normalizePin_(data.pin);
+      // لا يمكن لكلمة مرور المدير إثبات هوية طالب حتى عند إدخال رقم أكاديمي صحيح.
+      if (isValidAdminPassword_(pin)) return jsonResponse({ status: "success", verified: false, approved: false, student: null });
       const project = find(ss.getSheetByName("Projects"), "id", sid);
       const pending = project ? null : find(ss.getSheetByName("PendingApprovals"), "id", sid);
       const record = project || pending;
@@ -117,6 +131,8 @@ function doPost(e) {
       const sid = normalizeId_(data.studentId);
       const currentPin = normalizePin_(data.currentPin);
       const newPin = normalizePin_(data.newPin);
+      if (!getSiteConfig_().allowPasswordChange) return jsonResponse({ status: "error", message: "تغيير كلمة مرور الطالب متوقف حالياً." });
+      if (getSiteConfig_().maintenanceMode) return jsonResponse({ status: "error", message: "الموقع في وضع الصيانة حالياً." });
       if (newPin.length < 4 || newPin.length > 64) {
         return jsonResponse({ status: "error", message: "كلمة مرور الطالب يجب أن تكون بين 4 و64 حرفاً أو رقماً." });
       }
@@ -134,6 +150,9 @@ function doPost(e) {
 
     // تسجيل مشروع جديد وإيداعه بانتظار الاعتماد.
     if (action === "registerStudent") {
+      const siteConfig = getSiteConfig_();
+      if (!siteConfig.allowRegistration) return jsonResponse({ status: "error", message: "تسجيل الطلاب متوقف حالياً." });
+      if (siteConfig.maintenanceMode) return jsonResponse({ status: "error", message: "الموقع في وضع الصيانة حالياً." });
       requireFields_(data, ["studentId", "studentName"]);
       let fileUrl = String(data.fileUrl || "");
       let coverUrl = String(data.coverUrl || "");
@@ -207,6 +226,10 @@ function doPost(e) {
     }
     // تحديث بيانات مشروع معتمد أو مرفقاته.
     if (action === "updateProject") {
+      const siteConfig = getSiteConfig_();
+      const isAdminRequest = isValidAdminPassword_(data.adminPassword);
+      if (!siteConfig.allowProjectEdit && !isAdminRequest) return jsonResponse({ status: "error", message: "تعديل بيانات الطلاب متوقف حالياً." });
+      if (siteConfig.maintenanceMode && !isAdminRequest) return jsonResponse({ status: "error", message: "الموقع في وضع الصيانة حالياً." });
       requireFields_(data, ["studentId"]);
       let fileUrl = data.fileUrl || "";
       let coverUrl = data.coverUrl || "";
@@ -298,6 +321,8 @@ function doPost(e) {
 
     // تسجيل اقتراح أو ملاحظة.
     if (action === "sendFeedback") {
+      const siteConfig = getSiteConfig_();
+      if (!siteConfig.allowFeedback || siteConfig.maintenanceMode) return jsonResponse({ status: "error", message: "إرسال الاقتراحات متوقف حالياً." });
       ss.getSheetByName("Feedbacks").appendRow([data.sender || "", data.text || "", new Date().toISOString()]);
       return jsonResponse({ status: "success" });
     }
@@ -326,7 +351,31 @@ function getData_(ss, includePins) {
     pending: toMap(pending, "id", includePins),
     visits: toMap(readSheet(ss.getSheetByName("Visits")), "id", includePins),
     resetReqs: toMap(readSheet(ss.getSheetByName("ResetRequests")), "id", includePins),
-    feedbacks: readSheet(ss.getSheetByName("Feedbacks"))
+    feedbacks: readSheet(ss.getSheetByName("Feedbacks")),
+    siteConfig: getSiteConfig_()
+  };
+}
+
+function getSiteConfig_() {
+  const defaults = { universityTitle:"جامعة صنعاء | كلية الهندسة", batchTitle:"قسم الهندسة المعمارية — الدفعة 37", badgeText:"المستوى الخامس معماري (92 مهندساً)", heroTitle:"أرشيف البرمجة المعمارية للدفعة 37", heroDescription:"بوابة التوثيق والاستعراض الشامل لكافة مشاريع التخرج ودراسات البرنامج الفراغي والوظيفي، مرتبة تصاعدياً بحسب الرقم الأكاديمي.", headerSize:16, heroSize:29, descriptionSize:15, photoSize:180, allowRegistration:true, allowProjectEdit:true, allowPasswordChange:true, allowFeedback:true, allowWisdom:true, maintenanceMode:false, maintenanceMessage:"نعمل على تحسين الموقع. يرجى المحاولة لاحقاً." };
+  try { return Object.assign(defaults, JSON.parse(PropertiesService.getScriptProperties().getProperty("ARCH37_SITE_CONFIG") || "{}")); }
+  catch (err) { return defaults; }
+}
+
+function sanitizeSiteConfig_(source) {
+  const defaults = getSiteConfig_();
+  const config = source && typeof source === "object" ? source : {};
+  const text = (key, limit) => String(config[key] === undefined ? defaults[key] : config[key]).slice(0, limit);
+  const number = (key, fallback, min, max) => Math.max(min, Math.min(max, Number(config[key]) || fallback));
+  const boolean = key => config[key] === undefined ? !!defaults[key] : config[key] === true;
+  return {
+    universityTitle:text("universityTitle",120), batchTitle:text("batchTitle",120), badgeText:text("badgeText",160),
+    heroTitle:text("heroTitle",160), heroDescription:text("heroDescription",500),
+    headerSize:number("headerSize",16,12,48), heroSize:number("heroSize",29,16,64),
+    descriptionSize:number("descriptionSize",15,10,32), photoSize:number("photoSize",180,48,320),
+    allowRegistration:boolean("allowRegistration"), allowProjectEdit:boolean("allowProjectEdit"),
+    allowPasswordChange:boolean("allowPasswordChange"), allowFeedback:boolean("allowFeedback"), allowWisdom:boolean("allowWisdom"),
+    maintenanceMode:boolean("maintenanceMode"), maintenanceMessage:text("maintenanceMessage",180)
   };
 }
 
