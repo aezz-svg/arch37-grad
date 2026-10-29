@@ -23,6 +23,20 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ status: "error", message: "نوع الطلب غير معروف." });
   }
 
+  let targetUrl = APPS_SCRIPT_URL;
+  if (data.scriptUrl !== undefined) {
+    try {
+      const requestedUrl = new URL(String(data.scriptUrl));
+      if (requestedUrl.protocol !== "https:" || requestedUrl.hostname !== "script.google.com" || !/^\/macros\/s\/[^/]+\/exec\/?$/.test(requestedUrl.pathname)) {
+        return res.status(400).json({ status: "error", message: "رابط خدمة Google غير صالح." });
+      }
+      targetUrl = requestedUrl.href;
+    } catch (_) {
+      return res.status(400).json({ status: "error", message: "رابط خدمة Google غير صالح." });
+    }
+    delete data.scriptUrl;
+  }
+
   const body = JSON.stringify(data);
   if (Buffer.byteLength(body, "utf8") > 3500000) {
     return res.status(413).json({ status: "error", message: "حجم الطلب يتجاوز الحد الآمن لبوابة الموقع." });
@@ -31,7 +45,7 @@ module.exports = async function handler(req, res) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 230000);
   try {
-    const upstream = await fetch(APPS_SCRIPT_URL, {
+    const upstream = await fetch(targetUrl, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body,

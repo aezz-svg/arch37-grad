@@ -129,6 +129,8 @@
     .user-avatar-badge > i { font-size: 5rem !important; }
     .user-welcome-text h4 { font-size: 1.15rem; font-weight: 700; color: #fff; line-height: 1.5; }
     .user-welcome-text span { font-size: 0.95rem; color: var(--gold-light); font-weight: 500; }
+    .student-welcome-active .user-welcome-text h4 { font-size: 2.3rem; }
+    .student-welcome-active .user-welcome-text span { font-size: 1.9rem; }
     .user-welcome-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 0.5rem; flex: 1 1 280px; }
     .user-welcome-actions .btn-top { font-size: 0.85rem !important; padding: 0.45rem 0.75rem !important; }
 
@@ -1089,6 +1091,15 @@
         <button onclick="changeAdminPassword()" class="btn-top btn-gold" style="width: 100%; justify-content: center;">
           تحديث كلمة سر المدير
         </button>
+        <hr style="border:0; border-top:1px solid var(--border-subtle); margin:1.25rem 0;">
+        <div class="form-group">
+          <label for="adminCustomScriptUrlInput">رابط Google Apps Script</label>
+          <input type="url" id="adminCustomScriptUrlInput" dir="ltr" inputmode="url" autocomplete="off" placeholder="https://script.google.com/macros/s/.../exec">
+          <small style="display:block; color:var(--text-muted); margin-top:0.35rem;">حدّث رابط الخدمة من هنا؛ سيُستخدم مباشرة بعد الحفظ.</small>
+          <button type="button" onclick="saveCustomScriptUrl()" class="btn-top btn-gold" style="width:100%; justify-content:center; margin-top:0.55rem;">
+            <i class="fa-solid fa-link"></i> حفظ رابط الموقع
+          </button>
+        </div>
       </div>
 
       <!-- تبويب محرر الكود المباشر من داخل لوحة التحكم -->
@@ -1577,14 +1588,23 @@
 
     function saveCustomScriptUrl() {
       const input = document.getElementById('adminCustomScriptUrlInput');
-      const newUrl = input.value.trim();
-      if (!newUrl) {
-        alert('يرجى إدخال رابط صالح!');
+      const enteredUrl = input?.value.trim() || '';
+      let parsedUrl;
+      try {
+        parsedUrl = new URL(enteredUrl);
+      } catch {
+        alert('أدخل رابط Google Apps Script صحيحاً ينتهي بـ /exec.');
         return;
       }
+      if (parsedUrl.protocol !== 'https:' || parsedUrl.hostname !== 'script.google.com' || !/^\/macros\/s\/[^/]+\/exec\/?$/.test(parsedUrl.pathname)) {
+        alert('أدخل رابط Google Apps Script صحيحاً ينتهي بـ /exec.');
+        return;
+      }
+      const newUrl = parsedUrl.href;
       localStorage.setItem('arch37_custom_script_url', newUrl);
       APPS_SCRIPT_URL = newUrl;
-      alert('تم حفظ رابط السكربت بنجاح وتفعيله فوراً دون التأثير على البيانات!');
+      input.value = newUrl;
+      alert('تم حفظ الرابط وتفعيله فوراً.');
       syncWithCloudDatabase(true);
     }
 
@@ -1714,9 +1734,11 @@
     }
     function sendPayloadWithProgress(payload, onProgress) {
       return new Promise((resolve, reject) => {
-        const serializedPayload = JSON.stringify(payload);
+        const directPayload = JSON.stringify(payload);
+        const proxyPayload = JSON.stringify({ ...payload, scriptUrl: APPS_SCRIPT_URL });
+        const useVercelProxy = new Blob([proxyPayload]).size <= 3500000;
+        const serializedPayload = useVercelProxy ? proxyPayload : directPayload;
         const requestSize = new Blob([serializedPayload]).size;
-        const useVercelProxy = requestSize <= 3500000;
         const maxRetries = 3;
         const retryDelays = [2000, 5000, 10000];
         let attempt = 0;
@@ -1837,6 +1859,7 @@ function updateStudentWelcomeBar() {
   const activeUser = sessionStorage.getItem('arch37_authenticated_user');
   const bar = document.getElementById('userWelcomeBar');
   if (!bar) return;
+  bar.classList.remove('student-welcome-active');
 
   if (!activeUser) {
     bar.style.display = 'none';
@@ -1854,6 +1877,7 @@ function updateStudentWelcomeBar() {
   const proj = projectStore[activeUser];
 
   if (student) {
+    bar.classList.add('student-welcome-active');
     bar.style.display = 'flex';
     document.getElementById('welcomeBarName').innerHTML = `مرحباً بك يا باشمهندس: <span style="color:var(--gold-light);">${escapeHtml(student.name)}</span> 📐`;
     document.getElementById('welcomeBarId').textContent = `الرقم الأكاديمي: ${student.id} • نظام: ${student.system} • الترتيب: #${student.num}`;
