@@ -355,11 +355,22 @@
     }
     .btn-filter-pill.active { background: var(--gold); color: #07090c; border-color: var(--gold); }
 
+    .code-editor-wrap { position: relative; width: 100%; height: 380px; overflow: hidden; border-radius: 8px; background: #0d1117; }
+    .code-editor-highlight {
+      position: absolute; top: 0; left: 0; z-index: 0; min-width: 100%; margin: 0; padding: 0.8rem;
+      border: 1px solid transparent; color: #7ee787; font-family: 'Fira Code', monospace; font-size: 0.8rem;
+      direction: ltr; text-align: left; white-space: pre; tab-size: 2; pointer-events: none; transform: translate(0,0);
+    }
+    .code-search-match { background: rgba(250,204,21,0.42); color: #fff1a6; border-radius: 2px; }
+    .code-search-current { background: #f97316; color: #111827; outline: 1px solid #fde68a; }
     .code-editor-area {
+      position: relative; z-index: 1; box-sizing: border-box;
       width: 100%;
       height: 380px;
-      background: #0d1117;
-      color: #7ee787;
+      background: transparent;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      caret-color: #f0f6fc;
       font-family: 'Fira Code', monospace;
       font-size: 0.8rem;
       border: 1px solid var(--border-gold);
@@ -372,6 +383,7 @@
       tab-size: 2;
     }
     .code-editor-area::selection { background: #facc15; color: #111827; }
+    .code-editor-area::placeholder { color: #768390; -webkit-text-fill-color: #768390; }
 
     .wisdom-card {
       background: linear-gradient(145deg, rgba(197, 160, 89, 0.15), rgba(15, 19, 26, 0.98));
@@ -1214,7 +1226,10 @@
           <button type="button" class="btn-top btn-outline" onclick="searchLiveCodeMatch(1)">التالي</button>
           <span id="liveCodeSearchStatus" style="color:var(--text-muted);font-size:0.75rem"></span>
         </div>
-        <textarea id="liveSourceCodeEditor" class="code-editor-area" spellcheck="false" placeholder="جاري قراءة كود الموقع..."></textarea>
+        <div class="code-editor-wrap">
+          <pre id="liveCodeHighlightOverlay" class="code-editor-highlight" aria-hidden="true"></pre>
+          <textarea id="liveSourceCodeEditor" class="code-editor-area" spellcheck="false" placeholder="جاري قراءة كود الموقع..." oninput="handleLiveCodeEditorInput()" onscroll="syncLiveCodeHighlightScroll(this)"></textarea>
+        </div>
       </div>
     </div>
   </div>
@@ -1832,10 +1847,23 @@
     function updateLiveCodeSearchCount(){
       const input=document.getElementById('liveCodeSearchInput'),editor=document.getElementById('liveSourceCodeEditor'),status=document.getElementById('liveCodeSearchStatus');
       if(!input||!editor||!status)return;const query=input.value;
-      if(!query){liveCodeSearchState={query:'',matches:[],index:-1};status.textContent='اكتب كلمة للبحث.';return;}
+      if(!query){liveCodeSearchState={query:'',matches:[],index:-1};status.textContent='اكتب كلمة للبحث.';renderLiveCodeSearchHighlights();return;}
       const matches=collectLiveCodeMatches(query,editor.value);liveCodeSearchState={query,matches,index:-1};
       status.textContent=matches.length?`${matches.length} نتيجة — اضغط التالي لعرضها`: 'لا توجد نتائج.';
+      renderLiveCodeSearchHighlights();
     }
+    function renderLiveCodeSearchHighlights(){
+      const editor=document.getElementById('liveSourceCodeEditor'),overlay=document.getElementById('liveCodeHighlightOverlay');if(!editor||!overlay)return;
+      const source=editor.value,query=liveCodeSearchState.query,matches=liveCodeSearchState.matches;
+      if(!query||!matches.length){overlay.textContent=source+'\n';syncLiveCodeHighlightScroll(editor);return;}
+      let html='',cursor=0;
+      matches.forEach((start,index)=>{html+=escapeHtml(source.slice(cursor,start));const end=start+query.length,active=index===liveCodeSearchState.index;html+=`<mark class="code-search-match${active?' code-search-current':''}">${escapeHtml(source.slice(start,end))}</mark>`;cursor=end;});
+      overlay.innerHTML=html+escapeHtml(source.slice(cursor))+'\n';syncLiveCodeHighlightScroll(editor);
+    }
+    function syncLiveCodeHighlightScroll(editor){
+      const overlay=document.getElementById('liveCodeHighlightOverlay');if(overlay&&editor)overlay.style.transform=`translate(${-editor.scrollLeft}px, ${-editor.scrollTop}px)`;
+    }
+    function handleLiveCodeEditorInput(){updateLiveCodeSearchCount();}
     function searchLiveCodeMatch(direction=1){
       const input=document.getElementById('liveCodeSearchInput'),editor=document.getElementById('liveSourceCodeEditor'),status=document.getElementById('liveCodeSearchStatus');
       if(!input||!editor||!status)return;const query=input.value;if(!query){status.textContent='اكتب كلمة للبحث.';return;}
@@ -1847,6 +1875,7 @@
       editor.focus();editor.setSelectionRange(target,end);
       const line=editor.value.slice(0,target).split('\n').length,lineHeight=parseFloat(getComputedStyle(editor).lineHeight)||19;
       editor.scrollTop=Math.max(0,(line-1)*lineHeight-editor.clientHeight/2);
+      renderLiveCodeSearchHighlights();
       status.textContent=`${liveCodeSearchState.index+1} من ${count} — السطر ${line}`;
     }
     function handleLiveCodeSearchKey(event){if(event.key==='Enter'){event.preventDefault();searchLiveCodeMatch(event.shiftKey?-1:1);}}
@@ -1878,6 +1907,7 @@
       if (!editor) return;
       const customCode = localStorage.getItem('arch37_override_html');
       editor.value = customCode ? customCode : document.documentElement.outerHTML;
+      updateLiveCodeSearchCount();
     }
 
     async function saveAndApplyLiveCode() {
