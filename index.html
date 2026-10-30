@@ -1209,7 +1209,7 @@
           </div>
         </div>
         <div style="display:flex;gap:0.4rem;align-items:center;margin:0.5rem 0;flex-wrap:wrap">
-          <input id="liveCodeSearchInput" type="search" placeholder="ابحث عن كود أو كتابة..." onkeydown="handleLiveCodeSearchKey(event)" style="flex:1;min-width:220px">
+          <input id="liveCodeSearchInput" type="search" placeholder="ابحث عن كود أو كتابة..." oninput="updateLiveCodeSearchCount()" onkeydown="handleLiveCodeSearchKey(event)" style="flex:1;min-width:220px">
           <button type="button" class="btn-top btn-outline" onclick="searchLiveCodeMatch(-1)">السابق</button>
           <button type="button" class="btn-top btn-outline" onclick="searchLiveCodeMatch(1)">التالي</button>
           <span id="liveCodeSearchStatus" style="color:var(--text-muted);font-size:0.75rem"></span>
@@ -1823,17 +1823,31 @@
       catch(error){alert(error instanceof Error?error.message:'تعذر حفظ الإعدادات.');}
     }
 
+    let liveCodeSearchState={query:'',matches:[],index:-1};
+    function collectLiveCodeMatches(query,source){
+      const matches=[],term=query.toLocaleLowerCase(),text=source.toLocaleLowerCase();let from=0,index;
+      while((index=text.indexOf(term,from))!==-1){matches.push(index);from=index+Math.max(1,term.length);}
+      return matches;
+    }
+    function updateLiveCodeSearchCount(){
+      const input=document.getElementById('liveCodeSearchInput'),editor=document.getElementById('liveSourceCodeEditor'),status=document.getElementById('liveCodeSearchStatus');
+      if(!input||!editor||!status)return;const query=input.value;
+      if(!query){liveCodeSearchState={query:'',matches:[],index:-1};status.textContent='اكتب كلمة للبحث.';return;}
+      const matches=collectLiveCodeMatches(query,editor.value);liveCodeSearchState={query,matches,index:-1};
+      status.textContent=matches.length?`${matches.length} نتيجة — اضغط التالي لعرضها`: 'لا توجد نتائج.';
+    }
     function searchLiveCodeMatch(direction=1){
       const input=document.getElementById('liveCodeSearchInput'),editor=document.getElementById('liveSourceCodeEditor'),status=document.getElementById('liveCodeSearchStatus');
       if(!input||!editor||!status)return;const query=input.value;if(!query){status.textContent='اكتب كلمة للبحث.';return;}
-      const source=editor.value.toLocaleLowerCase(),term=query.toLocaleLowerCase(),matches=[];let from=0,index;
-      while((index=source.indexOf(term,from))!==-1){matches.push(index);from=index+Math.max(1,term.length);}
-      if(!matches.length){status.textContent='لا توجد نتائج.';return;}
-      let target=direction>0?matches.find(pos=>pos>editor.selectionStart):[...matches].reverse().find(pos=>pos<editor.selectionStart);
-      if(target===undefined)target=direction>0?matches[0]:matches[matches.length-1];
-      editor.focus();editor.setSelectionRange(target,target+term.length);
-      editor.scrollTop=Math.max(0,editor.value.slice(0,target).split('\n').length*19-editor.clientHeight/2);
-      const number=matches.indexOf(target)+1,line=editor.value.slice(0,target).split('\n').length;status.textContent=`${number} من ${matches.length} — السطر ${line}`;
+      if(liveCodeSearchState.query!==query){liveCodeSearchState={query,matches:collectLiveCodeMatches(query,editor.value),index:-1};}
+      const {matches}=liveCodeSearchState;if(!matches.length){status.textContent='لا توجد نتائج.';return;}
+      const count=matches.length;
+      liveCodeSearchState.index=liveCodeSearchState.index<0?(direction>0?0:count-1):(liveCodeSearchState.index+(direction>0?1:-1)+count)%count;
+      const target=matches[liveCodeSearchState.index],end=target+query.length;
+      editor.focus();editor.setSelectionRange(target,end);
+      const line=editor.value.slice(0,target).split('\n').length,lineHeight=parseFloat(getComputedStyle(editor).lineHeight)||19;
+      editor.scrollTop=Math.max(0,(line-1)*lineHeight-editor.clientHeight/2);
+      status.textContent=`${liveCodeSearchState.index+1} من ${count} — السطر ${line}`;
     }
     function handleLiveCodeSearchKey(event){if(event.key==='Enter'){event.preventDefault();searchLiveCodeMatch(event.shiftKey?-1:1);}}
 
