@@ -371,6 +371,7 @@
       overflow: auto;
       tab-size: 2;
     }
+    .code-editor-area::selection { background: #facc15; color: #111827; }
 
     .wisdom-card {
       background: linear-gradient(145deg, rgba(197, 160, 89, 0.15), rgba(15, 19, 26, 0.98));
@@ -533,10 +534,10 @@
         </div>
 
         <div class="form-group">
-          <label>معرفات ووسائل التواصل (جميع الوسائل متاحة):</label>
+          <label>وسائل التواصل (اختياري):</label>
           <div id="gateContactsContainer"></div>
           <button type="button" class="btn-add-contact" onclick="addContactRow('gateContactsContainer')">
-            <i class="fa-solid fa-plus"></i> إضافة وسيلة تواصل أخرى
+            <i class="fa-solid fa-plus"></i> إضافة وسيلة تواصل
           </button>
         </div>
 
@@ -842,10 +843,10 @@
         </div>
 
         <div class="form-group">
-          <label>تعديل وسائل التواصل (جميع الوسائل متاحة):</label>
+          <label>وسائل التواصل (اختياري):</label>
           <div id="editContactsContainer"></div>
           <button type="button" class="btn-add-contact" onclick="addContactRow('editContactsContainer')">
-            <i class="fa-solid fa-plus"></i> إضافة وسيلة تواصل أخرى
+            <i class="fa-solid fa-plus"></i> إضافة وسيلة تواصل
           </button>
         </div>
 
@@ -2360,7 +2361,7 @@ function updateStudentWelcomeBar() {
           <option value="phone" ${initialType === 'phone' ? 'selected' : ''}>اتصال هاتفي (Phone)</option>
           <option value="email" ${initialType === 'email' ? 'selected' : ''}>بريد إلكتروني (Email)</option>
         </select>
-        <input type="text" class="contact-val-input" placeholder="أدخل الرقم أو المعرف أو الرابط..." value="${escapeHtml(initialVal)}" required>
+        <input type="text" class="contact-val-input" placeholder="أدخل الرقم أو المعرف أو الرابط..." value="${escapeHtml(initialVal)}">
         <button type="button" class="btn-remove-contact" onclick="this.parentElement.remove()" title="حذف">
           <i class="fa-solid fa-trash"></i>
         </button>
