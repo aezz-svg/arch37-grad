@@ -24,6 +24,8 @@ const DRIVE_UPLOAD_SESSION_PREFIX = "ARCH37_DRIVE_UPLOAD_";
 const DRIVE_UPLOAD_CHUNK_BYTES = 2 * 1024 * 1024;
 const DRIVE_UPLOAD_MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024;
 const DRIVE_UPLOAD_SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const USEFUL_FILE_COVER_PREFIX = "ARCH37_USEFUL_FILE_COVER_";
+const USEFUL_FILE_COVER_MAX_BYTES = 1024 * 1024;
 function getUsefulFilesFolder_() {
   const root = DriveApp.getFolderById(TARGET_FOLDER_ID);
   const folders = root.getFoldersByName("ملفات مفيدة مشتركة");
@@ -51,7 +53,7 @@ function listUsefulFiles_() {
       policy = "false";
       properties.setProperty(policyKey, policy);
     }
-    result.push({ id: fileId, name: file.getName(), mimeType: file.getMimeType(), createdAt: file.getDateCreated().toISOString(), downloadAllowed: policy === "true" });
+    result.push({ id: fileId, name: file.getName(), mimeType: file.getMimeType(), createdAt: file.getDateCreated().toISOString(), downloadAllowed: policy === "true", coverAvailable: !!properties.getProperty(USEFUL_FILE_COVER_PREFIX + fileId) });
   }
   return result.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
 }
@@ -125,6 +127,49 @@ function getUsefulFileChunk_(data) {
   return { status: "success", start: start, end: end, totalSize: fileSize, base64Chunk: Utilities.base64Encode(bytes) };
 }
 
+function getUsefulFileCoverFolder_() {
+  const root = DriveApp.getFolderById(TARGET_FOLDER_ID);
+  const folders = root.getFoldersByName("أغلفة الملفات المفيدة");
+  return folders.hasNext() ? folders.next() : root.createFolder("أغلفة الملفات المفيدة");
+}
+
+function setUsefulFileCover_(data) {
+  requireFields_(data, ["fileId", "mimeType", "base64Image"]);
+  getUsefulFileForRead_(data.fileId);
+  const mimeType = String(data.mimeType || "");
+  const extensionByType = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+  if (!extensionByType[mimeType]) throw new Error("صيغة صورة الغلاف غير مدعومة.");
+  let bytes;
+  try { bytes = Utilities.base64Decode(String(data.base64Image).replace(/\s/g, "")); }
+  catch (_) { throw new Error("بيانات صورة الغلاف غير صالحة."); }
+  if (!bytes.length || bytes.length > USEFUL_FILE_COVER_MAX_BYTES) throw new Error("حجم صورة الغلاف أكبر من الحد المسموح (1 ميغابايت).");
+  const folder = getUsefulFileCoverFolder_();
+  const file = folder.createFile(Utilities.newBlob(bytes, mimeType, "cover-" + String(data.fileId) + "." + extensionByType[mimeType]));
+  const properties = PropertiesService.getScriptProperties();
+  const key = USEFUL_FILE_COVER_PREFIX + String(data.fileId);
+  const previousId = properties.getProperty(key);
+  properties.setProperty(key, file.getId());
+  if (previousId) { try { DriveApp.getFileById(previousId).setTrashed(true); } catch (_) {} }
+  return { status: "success", fileId: String(data.fileId), coverAvailable: true };
+}
+
+function getUsefulFileCover_(data) {
+  requireFields_(data, ["fileId"]);
+  getUsefulFileForRead_(data.fileId);
+  const coverId = PropertiesService.getScriptProperties().getProperty(USEFUL_FILE_COVER_PREFIX + String(data.fileId));
+  if (!coverId) return { status: "success", coverAvailable: false };
+  const cover = DriveApp.getFileById(coverId);
+  const parents = cover.getParents();
+  const coverFolder = getUsefulFileCoverFolder_();
+  let belongsToCoverFolder = false;
+  while (parents.hasNext()) if (parents.next().getId() === coverFolder.getId()) { belongsToCoverFolder = true; break; }
+  if (!belongsToCoverFolder || cover.isTrashed()) throw new Error("غلاف الكتاب غير متاح.");
+  const mimeType = cover.getMimeType();
+  const bytes = cover.getBlob().getBytes();
+  if (!/^image\/(jpeg|png|webp)$/.test(mimeType) || !bytes.length || bytes.length > USEFUL_FILE_COVER_MAX_BYTES) throw new Error("ملف غلاف الكتاب غير صالح.");
+  return { status: "success", coverAvailable: true, mimeType: mimeType, base64Image: Utilities.base64Encode(bytes) };
+}
+
 
 function doGet() {
   try {
@@ -144,9 +189,9 @@ function doPost(e) {
   }
 
   // Large project files use resumable Drive sessions, so each request stays small.
-  if (["beginFileUpload", "beginUsefulFileUpload", "uploadFileChunk", "getFileUploadStatus", "cancelFileUpload", "setUsefulFileDownload", "getUsefulFileInfo", "getUsefulFileChunk"].includes(data.action)) {
+  if (["beginFileUpload", "beginUsefulFileUpload", "uploadFileChunk", "getFileUploadStatus", "cancelFileUpload", "setUsefulFileDownload", "getUsefulFileInfo", "getUsefulFileChunk", "setUsefulFileCover", "getUsefulFileCover"].includes(data.action)) {
     try {
-      if (["beginUsefulFileUpload", "setUsefulFileDownload"].includes(data.action) && !isValidAdminPassword_(data.adminPassword)) {
+      if (["beginUsefulFileUpload", "setUsefulFileDownload", "setUsefulFileCover"].includes(data.action) && !isValidAdminPassword_(data.adminPassword)) {
         return jsonResponse({ status: "error", message: "غير مصرح." });
       }
       return jsonResponse(handleDriveUploadRequest_(data));
@@ -626,6 +671,8 @@ function handleDriveUploadRequest_(data) {
   if (data.action === "setUsefulFileDownload") return setUsefulFileDownload_(data);
   if (data.action === "getUsefulFileInfo") return getUsefulFileInfo_(data);
   if (data.action === "getUsefulFileChunk") return getUsefulFileChunk_(data);
+  if (data.action === "setUsefulFileCover") return setUsefulFileCover_(data);
+  if (data.action === "getUsefulFileCover") return getUsefulFileCover_(data);
   throw new Error("Unsupported upload action");
 }
 
