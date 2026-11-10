@@ -697,6 +697,16 @@
     </div>
     <div id="usefulFilesGrid" class="grid" style="margin-top:0;"></div>
   </section>
+  <div class="modal-overlay" id="usefulFileReaderModal" role="dialog" aria-modal="true" aria-labelledby="usefulFileReaderTitle">
+    <div class="modal-card" style="width:min(1100px,96vw);max-width:1100px;height:min(92vh,1000px);display:flex;flex-direction:column;">
+      <div class="modal-header" style="flex:none;">
+        <h3 id="usefulFileReaderTitle" style="margin:0;color:var(--gold);">معاينة الكتاب</h3>
+        <button class="btn-close" type="button" onclick="closeUsefulFileReader()" aria-label="إغلاق">&times;</button>
+      </div>
+      <div id="usefulFileReaderMessage" style="padding:0.5rem;color:var(--text-muted);font-size:0.85rem;">تصفح الملف من هنا.</div>
+      <iframe id="usefulFileReaderFrame" title="معاينة الملف" src="about:blank" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms" style="width:100%;flex:1;min-height:0;border:1px solid var(--border-subtle);border-radius:10px;background:#171717;"></iframe>
+    </div>
+  </div>
   <main class="grid" id="studentsGrid"></main>
 
   <div class="modal-overlay" id="welcomeWisdomModal">
@@ -2177,17 +2187,59 @@ function renderUsefulFiles() {
   const grid = document.getElementById('usefulFilesGrid');
   const controls = document.getElementById('usefulFilesAdminControls');
   if (!grid) return;
-  if (controls) controls.style.display = sessionStorage.getItem('arch37_authenticated_user') === 'admin' ? 'flex' : 'none';
+  const isAdmin = sessionStorage.getItem('arch37_authenticated_user') === 'admin';
+  if (controls) controls.style.display = isAdmin ? 'flex' : 'none';
   if (!usefulFiles.length) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:1.2rem;color:var(--text-muted);background:rgba(255,255,255,0.025);border:1px dashed var(--border-subtle);border-radius:10px;">لا توجد ملفات مضافة حالياً.</div>';
     return;
   }
   grid.innerHTML = usefulFiles.map(file => `
-    <article class="card" style="padding:0.85rem;display:flex;align-items:center;gap:0.7rem;">
-      <i class="fa-solid fa-file-lines" style="font-size:1.35rem;color:var(--gold);"></i>
+    <article class="card" style="padding:0.9rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+      <i class="fa-solid fa-book-open" style="font-size:1.4rem;color:var(--gold);"></i>
       <div style="min-width:0;flex:1;"><strong style="display:block;overflow-wrap:anywhere;">${escapeHtml(file.name || 'ملف')}</strong><small style="color:var(--text-muted);">${file.createdAt ? new Date(file.createdAt).toLocaleDateString('ar-YE') : ''}</small></div>
-      <a class="btn-top btn-outline" href="${escapeHtml(safeLinkUrl(file.url))}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square"></i> فتح</a>
+      <button class="btn-top btn-outline" type="button" onclick="openUsefulFileReader('${escapeHtml(file.id || '')}')"><i class="fa-solid fa-book-open"></i> معاينة</button>
+      ${file.downloadAllowed === true ? `<button class="btn-top btn-outline" type="button" onclick="downloadUsefulFile('${escapeHtml(file.id || '')}')"><i class="fa-solid fa-download"></i> تحميل</button>` : '<span style="color:var(--text-muted);font-size:0.78rem;"><i class="fa-solid fa-shield-halved"></i> معاينة فقط</span>'}
+      ${isAdmin ? `<button class="btn-top ${file.downloadAllowed === true ? 'btn-outline' : 'btn-gold'}" type="button" onclick="setUsefulFileDownload('${escapeHtml(file.id || '')}',${file.downloadAllowed === true ? 'false' : 'true'})"><i class="fa-solid ${file.downloadAllowed === true ? 'fa-lock' : 'fa-unlock'}"></i> ${file.downloadAllowed === true ? 'منع التحميل' : 'السماح بالتحميل'}</button>` : ''}
     </article>`).join('');
+}
+
+function openUsefulFileReader(fileId) {
+  const file = usefulFiles.find(item => String(item.id) === String(fileId));
+  if (!file || !file.id) { alert('تعذر العثور على هذا الملف. حدّث الصفحة وحاول مرة أخرى.'); return; }
+  document.getElementById('usefulFileReaderTitle').textContent = file.name || 'معاينة الملف';
+  document.getElementById('usefulFileReaderMessage').textContent = file.downloadAllowed === true ? 'يمكنك تصفح الملف هنا أو تحميله من قائمة الملفات.' : 'هذا الملف متاح للمعاينة فقط.';
+  document.getElementById('usefulFileReaderFrame').src = `https://drive.google.com/file/d/${encodeURIComponent(file.id)}/preview`;
+  openModal('usefulFileReaderModal');
+}
+
+function closeUsefulFileReader() {
+  closeModal('usefulFileReaderModal');
+  const frame = document.getElementById('usefulFileReaderFrame');
+  if (frame) frame.src = 'about:blank';
+}
+
+function downloadUsefulFile(fileId) {
+  const file = usefulFiles.find(item => String(item.id) === String(fileId));
+  if (!file || file.downloadAllowed !== true) { alert('التنزيل غير متاح لهذا الملف.'); return; }
+  const frame = document.createElement('iframe');
+  frame.style.display = 'none';
+  frame.setAttribute('aria-hidden', 'true');
+  frame.src = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(file.id)}`;
+  document.body.appendChild(frame);
+  setTimeout(() => frame.remove(), 60000);
+}
+
+async function setUsefulFileDownload(fileId, allowDownload) {
+  if (sessionStorage.getItem('arch37_authenticated_user') !== 'admin') { alert('هذا الإعداد متاح للمدير فقط.'); return; }
+  try {
+    const result = await sendPostToCloud({ action: 'setUsefulFileDownload', fileId, allowDownload: !!allowDownload, adminPassword: ADMIN_MASTER_SECRET });
+    if (result?.status !== 'success') throw new Error(result?.message || 'تعذر تحديث إعداد التنزيل.');
+    const file = usefulFiles.find(item => String(item.id) === String(fileId));
+    if (file) file.downloadAllowed = !!allowDownload;
+    renderUsefulFiles();
+  } catch (error) {
+    alert(safeUserErrorMessage(error, 'تعذر تحديث إعداد التنزيل.'));
+  }
 }
 
 async function uploadUsefulFiles(fileList) {
@@ -2202,7 +2254,7 @@ async function uploadUsefulFiles(fileList) {
       const uploaded = await uploadProjectFileInChunks(file, {
         studentId: 'shared-useful-files', studentName: 'ملفات مشتركة', tag: 'ملفات مفيدة', uploadPurpose: 'usefulFile'
       });
-      usefulFiles.unshift({ id: uploaded.fileId, name: uploaded.fileName || file.name, url: uploaded.fileUrl, mimeType: file.type || 'application/octet-stream', createdAt: new Date().toISOString() });
+      usefulFiles.unshift({ id: uploaded.fileId, name: uploaded.fileName || file.name, mimeType: file.type || 'application/octet-stream', createdAt: new Date().toISOString(), downloadAllowed: false });
       renderUsefulFiles();
     }
     alert(`تم رفع ${files.length} ملف${files.length === 1 ? '' : 'ات'} إلى الملفات المفيدة.`);
