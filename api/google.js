@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmrSb_tHLl-rGaTcyFtWU8FqfHnnHvCVh3ZkHz5fyl3F2pISANX4448dlPuFGA9HaeBA/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbynr9frqJ1HcOvffIwF2nGV_LL7Xv5v_7F4KC0lqQaJsz5CTZ9qRIHegrBIT9LzMQIrzQ/exec";
 const ALLOWED_ACTIONS = new Set([
   "getAdminData", "verifyStudent", "registerStudent", "decideApproval",
   "changeAdminPassword", "changeStudentPin",
