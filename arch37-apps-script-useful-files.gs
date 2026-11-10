@@ -25,6 +25,7 @@ const DRIVE_UPLOAD_CHUNK_BYTES = 2 * 1024 * 1024;
 const DRIVE_UPLOAD_MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024;
 const DRIVE_UPLOAD_SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const USEFUL_FILE_COVER_PREFIX = "ARCH37_USEFUL_FILE_COVER_";
+const USEFUL_FILE_ACTIVE_PREFIX = "ARCH37_USEFUL_FILE_ACTIVE_";
 const USEFUL_FILE_COVER_MAX_BYTES = 1024 * 1024;
 function getUsefulFilesFolder_() {
   const root = DriveApp.getFolderById(TARGET_FOLDER_ID);
@@ -35,7 +36,7 @@ function getUsefulFilesFolder_() {
   return folder;
 }
 
-function listUsefulFiles_() {
+function listUsefulFiles_(includeSuspended) {
   const root = DriveApp.getFolderById(TARGET_FOLDER_ID);
   const folders = root.getFoldersByName("ملفات مفيدة مشتركة");
   if (!folders.hasNext()) return [];
@@ -46,6 +47,9 @@ function listUsefulFiles_() {
     const file = iterator.next();
     if (file.isTrashed()) continue;
     const fileId = file.getId();
+    const activeValue = properties.getProperty(USEFUL_FILE_ACTIVE_PREFIX + fileId);
+    const active = activeValue !== "false";
+    if (!active && includeSuspended !== true) continue;
     const policyKey = usefulFileDownloadPolicyKey_(fileId);
     let policy = properties.getProperty(policyKey);
     if (policy === null) {
@@ -53,7 +57,7 @@ function listUsefulFiles_() {
       policy = "false";
       properties.setProperty(policyKey, policy);
     }
-    result.push({ id: fileId, name: file.getName(), mimeType: file.getMimeType(), createdAt: file.getDateCreated().toISOString(), downloadAllowed: policy === "true", coverAvailable: !!properties.getProperty(USEFUL_FILE_COVER_PREFIX + fileId) });
+    result.push({ id: fileId, name: file.getName(), mimeType: file.getMimeType(), createdAt: file.getDateCreated().toISOString(), downloadAllowed: policy === "true", coverAvailable: !!properties.getProperty(USEFUL_FILE_COVER_PREFIX + fileId), active: active });
   }
   return result.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
 }
@@ -87,6 +91,27 @@ function setUsefulFileDownload_(data) {
   if (!belongsToUsefulFiles || file.isTrashed()) throw new Error("الملف غير موجود في قائمة الملفات المفيدة.");
   setDriveFileDownloadRestriction_(file, data.allowDownload);
   return { status: "success", fileId: fileId, downloadAllowed: data.allowDownload };
+}
+
+function setUsefulFileAvailability_(data) {
+  requireFields_(data, ["fileId"]);
+  if (typeof data.active !== "boolean") throw new Error("حالة إظهار الملف غير صالحة.");
+  const file = getUsefulFileForRead_(data.fileId);
+  PropertiesService.getScriptProperties().setProperty(USEFUL_FILE_ACTIVE_PREFIX + file.getId(), data.active ? "true" : "false");
+  return { status: "success", fileId: file.getId(), active: data.active };
+}
+
+function deleteUsefulFile_(data) {
+  requireFields_(data, ["fileId"]);
+  const file = getUsefulFileForRead_(data.fileId);
+  const id = file.getId();
+  const properties = PropertiesService.getScriptProperties();
+  const coverKey = USEFUL_FILE_COVER_PREFIX + id;
+  const coverId = properties.getProperty(coverKey);
+  if (coverId) { try { DriveApp.getFileById(coverId).setTrashed(true); } catch (_) {} }
+  [coverKey, USEFUL_FILE_ACTIVE_PREFIX + id, usefulFileDownloadPolicyKey_(id)].forEach(key => properties.deleteProperty(key));
+  file.setTrashed(true);
+  return { status: "success", fileId: id };
 }
 
 function getUsefulFileForRead_(fileId) {
@@ -189,9 +214,9 @@ function doPost(e) {
   }
 
   // Large project files use resumable Drive sessions, so each request stays small.
-  if (["beginFileUpload", "beginUsefulFileUpload", "uploadFileChunk", "getFileUploadStatus", "cancelFileUpload", "setUsefulFileDownload", "getUsefulFileInfo", "getUsefulFileChunk", "setUsefulFileCover", "getUsefulFileCover"].includes(data.action)) {
+  if (["beginFileUpload", "beginUsefulFileUpload", "uploadFileChunk", "getFileUploadStatus", "cancelFileUpload", "setUsefulFileDownload", "setUsefulFileAvailability", "deleteUsefulFile", "getUsefulFileInfo", "getUsefulFileChunk", "setUsefulFileCover", "getUsefulFileCover"].includes(data.action)) {
     try {
-      if (["beginUsefulFileUpload", "setUsefulFileDownload", "setUsefulFileCover"].includes(data.action) && !isValidAdminPassword_(data.adminPassword)) {
+      if (["beginUsefulFileUpload", "setUsefulFileDownload", "setUsefulFileAvailability", "deleteUsefulFile", "setUsefulFileCover"].includes(data.action) && !isValidAdminPassword_(data.adminPassword)) {
         return jsonResponse({ status: "error", message: "غير مصرح." });
       }
       return jsonResponse(handleDriveUploadRequest_(data));
@@ -571,7 +596,7 @@ function getData_(ss, includePins) {
     visits: toMap(readSheet(ss.getSheetByName("Visits")), "id", includePins),
     resetReqs: toMap(readSheet(ss.getSheetByName("ResetRequests")), "id", includePins),
     feedbacks: readSheet(ss.getSheetByName("Feedbacks")),
-    usefulFiles: listUsefulFiles_(),
+    usefulFiles: listUsefulFiles_(includePins === true),
 
     visitRequests: includePins ? readSheet(ss.getSheetByName("VisitRequests")).map(({ accessCode, ...request }) => request) : [],
     siteConfig: getSiteConfig_()
@@ -669,6 +694,8 @@ function handleDriveUploadRequest_(data) {
   if (data.action === "getFileUploadStatus") return getDriveUploadStatus_(data);
   if (data.action === "cancelFileUpload") return cancelDriveUpload_(data);
   if (data.action === "setUsefulFileDownload") return setUsefulFileDownload_(data);
+  if (data.action === "setUsefulFileAvailability") return setUsefulFileAvailability_(data);
+  if (data.action === "deleteUsefulFile") return deleteUsefulFile_(data);
   if (data.action === "getUsefulFileInfo") return getUsefulFileInfo_(data);
   if (data.action === "getUsefulFileChunk") return getUsefulFileChunk_(data);
   if (data.action === "setUsefulFileCover") return setUsefulFileCover_(data);
@@ -688,9 +715,13 @@ function beginDriveUpload_(data, isUsefulFile) {
   const folder = isUsefulFile ? getUsefulFilesFolder_() : getOrCreateStudentFolder_(studentId, data.studentName);
   const fileName = isUsefulFile ? sanitizeDriveFileName_(data.fileName) : `[${studentId}] ${String(data.tag || "مشروع")} - ${sanitizeDriveFileName_(data.fileName)}`;
   const mimeType = String(data.mimeType || "application/octet-stream");
-  const metadata = { name: fileName, mimeType: mimeType, parents: [folder.getId()] };
-  const response = UrlFetchApp.fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,webViewLink", {
-    method: "post",
+  const replaceFileId = isUsefulFile && data.replaceFileId ? String(data.replaceFileId) : "";
+  if (replaceFileId) getUsefulFileForRead_(replaceFileId);
+  const metadata = { name: fileName, mimeType: mimeType };
+  if (!replaceFileId) metadata.parents = [folder.getId()];
+  const uploadEndpoint = "https://www.googleapis.com/upload/drive/v3/files" + (replaceFileId ? "/" + encodeURIComponent(replaceFileId) : "") + "?uploadType=resumable&fields=id,name,webViewLink";
+  const response = UrlFetchApp.fetch(uploadEndpoint, {
+    method: replaceFileId ? "patch" : "post",
     contentType: "application/json; charset=UTF-8",
     headers: {
       Authorization: "Bearer " + ScriptApp.getOAuthToken(),
@@ -714,6 +745,7 @@ function beginDriveUpload_(data, isUsefulFile) {
     studentId: studentId,
     studentName: String(data.studentName || "طالب"),
     isUsefulFile: isUsefulFile === true,
+    replaceFileId: replaceFileId,
     fileName: fileName,
     mimeType: mimeType,
     fileSize: fileSize,
@@ -782,7 +814,7 @@ function completeDriveUpload_(session, file) {
   if (!file || !file.id) throw new Error("لم يؤكد Drive اكتمال الملف.");
   const driveFile = DriveApp.getFileById(file.id);
   driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  if (session.isUsefulFile) setDriveFileDownloadRestriction_(driveFile, false);
+  if (session.isUsefulFile && !session.replaceFileId) setDriveFileDownloadRestriction_(driveFile, false);
   session.completed = true;
   session.fileId = file.id;
   session.fileUrl = driveFile.getUrl();

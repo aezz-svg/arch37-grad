@@ -5,7 +5,7 @@ const ALLOWED_ACTIONS = new Set([
   "updateProject", "removeProfilePhoto", "recordVisit", "resetStudent", "requestPinReset",
   "approvePinReset", "sendFeedback", "saveLiveCode", "saveSiteConfig",
   "submitVisitorRequest", "decideVisitRequest", "checkVisitAccess",
-  "beginFileUpload", "beginUsefulFileUpload", "uploadFileChunk", "getFileUploadStatus", "cancelFileUpload", "setUsefulFileDownload", "getUsefulFileInfo", "getUsefulFileChunk", "setUsefulFileCover", "getUsefulFileCover"
+  "beginFileUpload", "beginUsefulFileUpload", "uploadFileChunk", "getFileUploadStatus", "cancelFileUpload", "setUsefulFileDownload", "setUsefulFileAvailability", "deleteUsefulFile", "getUsefulFileInfo", "getUsefulFileChunk", "setUsefulFileCover", "getUsefulFileCover"
 ]);
 
 module.exports = async function handler(req, res) {

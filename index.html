@@ -2226,7 +2226,7 @@ function renderUsefulFiles() {
       <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;flex:1 1 100%;">
         <button class="btn-top btn-outline" type="button" onclick="openUsefulFileReader('${escapeHtml(file.id || '')}')"><i class="fa-solid fa-book-open"></i> معاينة</button>
         ${file.downloadAllowed === true ? `<button class="btn-top btn-outline" type="button" onclick="downloadUsefulFile('${escapeHtml(file.id || '')}')"><i class="fa-solid fa-download"></i> تحميل</button>` : '<span style="color:var(--text-muted);font-size:0.78rem;"><i class="fa-solid fa-shield-halved"></i> معاينة فقط</span>'}
-        ${isAdmin ? `<button class="btn-top btn-outline" type="button" onclick="chooseUsefulFileCover('${escapeHtml(file.id || '')}')"><i class="fa-regular fa-image"></i> ${file.coverAvailable ? 'تغيير الغلاف' : 'إضافة غلاف'}</button><button class="btn-top ${file.downloadAllowed === true ? 'btn-outline' : 'btn-gold'}" type="button" onclick="setUsefulFileDownload('${escapeHtml(file.id || '')}',${file.downloadAllowed === true ? 'false' : 'true'})"><i class="fa-solid ${file.downloadAllowed === true ? 'fa-lock' : 'fa-unlock'}"></i> ${file.downloadAllowed === true ? 'منع التحميل' : 'السماح بالتحميل'}</button>` : ''}
+        ${isAdmin ? `<button class="btn-top btn-outline" type="button" onclick="chooseUsefulFileReplacement('${escapeHtml(file.id || '')}')"><i class="fa-solid fa-arrow-right-arrow-left"></i> استبدال الملف</button><button class="btn-top btn-outline" type="button" onclick="chooseUsefulFileCover('${escapeHtml(file.id || '')}')"><i class="fa-regular fa-image"></i> ${file.coverAvailable ? 'تغيير الغلاف' : 'إضافة غلاف'}</button><button class="btn-top ${file.downloadAllowed === true ? 'btn-outline' : 'btn-gold'}" type="button" onclick="setUsefulFileDownload('${escapeHtml(file.id || '')}',${file.downloadAllowed === true ? 'false' : 'true'})"><i class="fa-solid ${file.downloadAllowed === true ? 'fa-lock' : 'fa-unlock'}"></i> ${file.downloadAllowed === true ? 'منع التحميل' : 'السماح بالتحميل'}</button><button class="btn-top btn-outline" type="button" onclick="setUsefulFileAvailability('${escapeHtml(file.id || '')}',${file.active === false ? 'true' : 'false'})"><i class="fa-solid ${file.active === false ? 'fa-eye' : 'fa-eye-slash'}"></i> ${file.active === false ? 'إعادة الإظهار' : 'إيقاف مؤقت'}</button><button class="btn-top btn-outline" style="color:#ef7777;" type="button" onclick="deleteUsefulFile('${escapeHtml(file.id || '')}')"><i class="fa-solid fa-trash"></i> حذف</button>` : ''}
       </div>
     </article>`).join('');
   usefulFiles.forEach(file => { if (file.coverAvailable) loadUsefulFileCover(file.id); });
@@ -2536,6 +2536,52 @@ async function setUsefulFileDownload(fileId, allowDownload) {
   } catch (error) {
     alert(safeUserErrorMessage(error, 'تعذر تحديث إعداد التنزيل.'));
   }
+}
+
+function chooseUsefulFileReplacement(fileId) {
+  if (sessionStorage.getItem('arch37_authenticated_user') !== 'admin') { alert('استبدال الملف متاح للمدير فقط.'); return; }
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.pdf,application/pdf';
+  input.onchange = () => { if (input.files && input.files[0]) replaceUsefulFile(fileId, input.files[0]); };
+  input.click();
+}
+
+async function replaceUsefulFile(fileId, file) {
+  if (!file || !confirm('سيُستبدل محتوى هذا الكتاب مع الإبقاء على غلافه وإعداد التحميل. متابعة؟')) return;
+  const item = usefulFiles.find(entry => String(entry.id) === String(fileId));
+  if (!item) { alert('تعذر العثور على الكتاب. حدّث الصفحة وحاول مجدداً.'); return; }
+  try {
+    const uploaded = await uploadProjectFileInChunks(file, { studentId: 'shared-useful-files', studentName: 'ملفات مشتركة', tag: 'ملفات مفيدة', uploadPurpose: 'usefulFile', replaceFileId: fileId });
+    item.name = uploaded.fileName || file.name;
+    item.mimeType = file.type || 'application/pdf';
+    item.createdAt = new Date().toISOString();
+    item.readerLoading = false;
+    renderUsefulFiles();
+    alert('تم استبدال الملف بنجاح.');
+  } catch (error) { alert(safeUserErrorMessage(error, 'تعذر استبدال الملف.')); }
+}
+
+async function setUsefulFileAvailability(fileId, active) {
+  if (sessionStorage.getItem('arch37_authenticated_user') !== 'admin') { alert('هذا الإجراء متاح للمدير فقط.'); return; }
+  try {
+    const result = await sendPostToCloud({ action: 'setUsefulFileAvailability', fileId, active: !!active, adminPassword: ADMIN_MASTER_SECRET });
+    if (result?.status !== 'success') throw new Error(result?.message || 'تعذر تحديث حالة الملف.');
+    const file = usefulFiles.find(item => String(item.id) === String(fileId));
+    if (file) file.active = !!active;
+    renderUsefulFiles();
+  } catch (error) { alert(safeUserErrorMessage(error, 'تعذر تحديث حالة الملف.')); }
+}
+
+async function deleteUsefulFile(fileId) {
+  if (sessionStorage.getItem('arch37_authenticated_user') !== 'admin') { alert('حذف الملف متاح للمدير فقط.'); return; }
+  if (!confirm('هل تريد حذف هذا الكتاب نهائياً من قائمة الملفات المفيدة؟')) return;
+  try {
+    const result = await sendPostToCloud({ action: 'deleteUsefulFile', fileId, adminPassword: ADMIN_MASTER_SECRET });
+    if (result?.status !== 'success') throw new Error(result?.message || 'تعذر حذف الملف.');
+    usefulFiles = usefulFiles.filter(item => String(item.id) !== String(fileId));
+    renderUsefulFiles();
+  } catch (error) { alert(safeUserErrorMessage(error, 'تعذر حذف الملف.')); }
 }
 
 async function uploadUsefulFiles(fileList) {
@@ -3006,7 +3052,7 @@ function updateStudentWelcomeBar() {
         throw new Error('حجم الملف يتجاوز 2 جيجابايت.');
       }
 
-      const resumeKey = `arch37-upload:${encodeURIComponent([details.studentId, details.tag || 'مشروع', file.name, file.size, file.lastModified].join('|'))}`;
+      const resumeKey = `arch37-upload:${encodeURIComponent([details.studentId, details.tag || 'مشروع', details.replaceFileId || '', file.name, file.size, file.lastModified].join('|'))}`;
       let session = null;
       let uploadId = '';
       try { uploadId = sessionStorage.getItem(resumeKey) || ''; } catch (_) {}
@@ -3037,7 +3083,7 @@ function updateStudentWelcomeBar() {
           mimeType: file.type || details.mimeType || 'application/octet-stream',
           fileSize: file.size,
           tag: details.tag || 'مشروع',
-          ...(details.uploadPurpose === 'usefulFile' ? { adminPassword: ADMIN_MASTER_SECRET } : {})
+          ...(details.uploadPurpose === 'usefulFile' ? { adminPassword: ADMIN_MASTER_SECRET, ...(details.replaceFileId ? { replaceFileId: details.replaceFileId } : {}) } : {})
         });
         if (!session || session.status !== 'success' || !session.uploadId) {
           throw new Error('تعذر بدء رفع الملف. حاول مرة أخرى.');
