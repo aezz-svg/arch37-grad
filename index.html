@@ -684,6 +684,19 @@
     <div class="stats-info" id="statsLabel">جاري تحميل البيانات...</div>
   </section>
 
+  <section id="usefulFilesSection" style="margin:1.5rem 0 2rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.8rem;">
+      <div>
+        <h3 style="color:var(--gold);margin:0 0 0.25rem;"><i class="fa-solid fa-folder-open"></i> ملفات مفيدة</h3>
+        <p style="color:var(--text-muted);font-size:0.82rem;margin:0;">مصادر وملفات مشتركة لجميع طلاب الدفعة.</p>
+      </div>
+      <div id="usefulFilesAdminControls" style="display:none;gap:0.5rem;align-items:center;">
+        <input id="usefulFilesUploadInput" type="file" multiple style="display:none" onchange="uploadUsefulFiles(this.files)">
+        <button type="button" class="btn-top btn-gold" onclick="document.getElementById('usefulFilesUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i> رفع ملفات</button>
+      </div>
+    </div>
+    <div id="usefulFilesGrid" class="grid" style="margin-top:0;"></div>
+  </section>
   <main class="grid" id="studentsGrid"></main>
 
   <div class="modal-overlay" id="welcomeWisdomModal">
@@ -1416,6 +1429,7 @@
 
     let APPS_SCRIPT_URL = getActiveScriptUrl();
     let ADMIN_MASTER_SECRET = localStorage.getItem('arch37_admin_pwd') || "admin37";
+    let usefulFiles = [];
     const DEFAULT_SITE_CONFIG = { universityTitle:'جامعة صنعاء | كلية الهندسة', batchTitle:'قسم الهندسة المعمارية — الدفعة 37', badgeText:'المستوى الخامس معماري (92 مهندساً)', heroTitle:'أرشيف البرمجة المعمارية للدفعة 37', heroDescription:'بوابة التوثيق والاستعراض الشامل لكافة مشاريع التخرج ودراسات البرنامج الفراغي والوظيفي، مرتبة تصاعدياً بحسب الرقم الأكاديمي.', headerSize:16, heroSize:29, descriptionSize:15, photoSize:180, allowRegistration:true, allowProjectEdit:true, allowPasswordChange:true, allowFeedback:true, allowWisdom:true, guestMode:false, maintenanceMode:false, maintenanceMessage:'نعمل على تحسين الموقع. يرجى المحاولة لاحقاً.' };
     function readCachedSiteConfig(){try{return JSON.parse(localStorage.getItem('arch37_site_config')||'{}')||{};}catch{return {};}}
     let siteConfig = { ...DEFAULT_SITE_CONFIG, ...readCachedSiteConfig() };
@@ -1612,6 +1626,8 @@
         if (result?.status !== 'success') throw new Error(result?.message || 'تعذر تحميل بيانات المدير.');
         projectStore = Object.assign({}, defaultProjects, normalizeStudentMap(result.projects));
         pendingApprovals = normalizeStudentMap(result.pending);
+        usefulFiles = Array.isArray(result.usefulFiles) ? result.usefulFiles : [];
+        renderUsefulFiles();
         studentVisits = normalizeStudentMap(result.visits);
         resetRequests = normalizeStudentMap(result.resetReqs);
         if (Array.isArray(result.feedbacks)) feedbackList = result.feedbacks;
@@ -1956,6 +1972,8 @@
 
         projectStore = Object.assign({}, defaultProjects, removePrivatePins(result.projects));
         pendingApprovals = removePrivatePins(result.pending);
+        usefulFiles = Array.isArray(result.usefulFiles) ? result.usefulFiles : [];
+        renderUsefulFiles();
         studentVisits = Object.assign({}, studentVisits, normalizeStudentMap(result.visits));
         resetRequests = normalizeStudentMap(result.resetReqs);
         if (result.feedbacks && result.feedbacks.length > 0) feedbackList = result.feedbacks;
@@ -2155,6 +2173,47 @@
       return target.endsWith('.jpg') || target.endsWith('.jpeg') || target.endsWith('.png') || target.endsWith('.webp') || target.includes('data:image/');
     }
 
+function renderUsefulFiles() {
+  const grid = document.getElementById('usefulFilesGrid');
+  const controls = document.getElementById('usefulFilesAdminControls');
+  if (!grid) return;
+  if (controls) controls.style.display = sessionStorage.getItem('arch37_authenticated_user') === 'admin' ? 'flex' : 'none';
+  if (!usefulFiles.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:1.2rem;color:var(--text-muted);background:rgba(255,255,255,0.025);border:1px dashed var(--border-subtle);border-radius:10px;">لا توجد ملفات مضافة حالياً.</div>';
+    return;
+  }
+  grid.innerHTML = usefulFiles.map(file => `
+    <article class="card" style="padding:0.85rem;display:flex;align-items:center;gap:0.7rem;">
+      <i class="fa-solid fa-file-lines" style="font-size:1.35rem;color:var(--gold);"></i>
+      <div style="min-width:0;flex:1;"><strong style="display:block;overflow-wrap:anywhere;">${escapeHtml(file.name || 'ملف')}</strong><small style="color:var(--text-muted);">${file.createdAt ? new Date(file.createdAt).toLocaleDateString('ar-YE') : ''}</small></div>
+      <a class="btn-top btn-outline" href="${escapeHtml(safeLinkUrl(file.url))}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square"></i> فتح</a>
+    </article>`).join('');
+}
+
+async function uploadUsefulFiles(fileList) {
+  const files = Array.from(fileList || []);
+  if (!files.length) return;
+  if (sessionStorage.getItem('arch37_authenticated_user') !== 'admin') { alert('هذه العملية متاحة للمدير فقط.'); return; }
+  const input = document.getElementById('usefulFilesUploadInput');
+  const button = document.querySelector('#usefulFilesAdminControls button');
+  if (button) { button.disabled = true; button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جارٍ الرفع...'; }
+  try {
+    for (const file of files) {
+      const uploaded = await uploadProjectFileInChunks(file, {
+        studentId: 'shared-useful-files', studentName: 'ملفات مشتركة', tag: 'ملفات مفيدة', uploadPurpose: 'usefulFile'
+      });
+      usefulFiles.unshift({ id: uploaded.fileId, name: uploaded.fileName || file.name, url: uploaded.fileUrl, mimeType: file.type || 'application/octet-stream', createdAt: new Date().toISOString() });
+      renderUsefulFiles();
+    }
+    alert(`تم رفع ${files.length} ملف${files.length === 1 ? '' : 'ات'} إلى الملفات المفيدة.`);
+  } catch (error) {
+    alert(safeUserErrorMessage(error, 'تعذر رفع الملفات. حاول مرة أخرى.'));
+  } finally {
+    if (input) input.value = '';
+    if (button) { button.disabled = false; button.innerHTML = '<i class="fa-solid fa-file-arrow-up"></i> رفع ملفات'; }
+    renderUsefulFiles();
+  }
+}
 function updateStudentWelcomeBar() {
   const activeUser = sessionStorage.getItem('arch37_authenticated_user');
   const bar = document.getElementById('userWelcomeBar');
@@ -2623,13 +2682,14 @@ function updateStudentWelcomeBar() {
 
       if (!uploadId) {
         session = await sendPayloadWithProgress({
-          action: 'beginFileUpload',
+          action: details.uploadPurpose === 'usefulFile' ? 'beginUsefulFileUpload' : 'beginFileUpload',
           studentId: details.studentId,
           studentName: details.studentName || 'طالب',
           fileName: file.name,
           mimeType: file.type || details.mimeType || 'application/octet-stream',
           fileSize: file.size,
-          tag: details.tag || 'مشروع'
+          tag: details.tag || 'مشروع',
+          ...(details.uploadPurpose === 'usefulFile' ? { adminPassword: ADMIN_MASTER_SECRET } : {})
         });
         if (!session || session.status !== 'success' || !session.uploadId) {
           throw new Error('تعذر بدء رفع الملف. حاول مرة أخرى.');
