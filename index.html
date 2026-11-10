@@ -2421,13 +2421,15 @@ async function renderUsefulPdfPage(pageNumber) {
     const viewport = page.getViewport({ scale: fitScale * usefulPdfZoom });
     const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
     const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d', { alpha: false });
+    const context = canvas.getContext('2d', { alpha: true });
     canvas.width = Math.ceil(viewport.width * pixelRatio);
     canvas.height = Math.ceil(viewport.height * pixelRatio);
-    canvas.style.cssText = `display:block;width:${Math.ceil(viewport.width)}px;height:${Math.ceil(viewport.height)}px;max-width:100%;margin:0 auto;`;
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    canvas.style.cssText = `display:block;width:${Math.ceil(viewport.width)}px;height:${Math.ceil(viewport.height)}px;max-width:100%;margin:0 auto;background:#fff;`;
     slot.style.minHeight = `${Math.ceil(viewport.height)}px`;
     slot.replaceChildren(canvas);
-    task = page.render({ canvasContext: context, viewport, transform: pixelRatio === 1 ? null : [pixelRatio, 0, 0, pixelRatio, 0, 0] });
+    task = page.render({ canvasContext: context, viewport, background: 'rgb(255, 255, 255)', transform: pixelRatio === 1 ? null : [pixelRatio, 0, 0, pixelRatio, 0, 0] });
     usefulPdfPageRenderTasks.set(pageNumber, task);
     await task.promise;
     usefulPdfRenderedPages.add(pageNumber);
