@@ -87,6 +87,44 @@ function setUsefulFileDownload_(data) {
   return { status: "success", fileId: fileId, downloadAllowed: data.allowDownload };
 }
 
+function getUsefulFileForRead_(fileId) {
+  const id = String(fileId || "");
+  if (!/^[a-zA-Z0-9_-]{10,}$/.test(id)) throw new Error("معرّف الملف غير صالح.");
+  const folder = getUsefulFilesFolder_();
+  const file = DriveApp.getFileById(id);
+  const parents = file.getParents();
+  let belongsToUsefulFiles = false;
+  while (parents.hasNext()) if (parents.next().getId() === folder.getId()) { belongsToUsefulFiles = true; break; }
+  if (!belongsToUsefulFiles || file.isTrashed()) throw new Error("الملف غير موجود في قائمة الملفات المفيدة.");
+  return file;
+}
+
+function getUsefulFileInfo_(data) {
+  requireFields_(data, ["fileId"]);
+  const file = getUsefulFileForRead_(data.fileId);
+  return { status: "success", name: file.getName(), mimeType: file.getMimeType(), size: file.getSize() };
+}
+
+function getUsefulFileChunk_(data) {
+  requireFields_(data, ["fileId", "start", "end"]);
+  const file = getUsefulFileForRead_(data.fileId);
+  const fileSize = file.getSize();
+  const start = Number(data.start);
+  const end = Number(data.end);
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end <= start || end > fileSize || end - start > 1024 * 1024) {
+    throw new Error("نطاق قراءة الملف غير صالح.");
+  }
+  const response = UrlFetchApp.fetch("https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(file.getId()) + "?alt=media", {
+    method: "get",
+    headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken(), Range: "bytes=" + start + "-" + (end - 1) },
+    muteHttpExceptions: true
+  });
+  const status = response.getResponseCode();
+  const bytes = response.getContent();
+  if (status !== 206 || bytes.length !== end - start) throw new Error("تعذر تحميل صفحة من الملف (HTTP " + status + ").");
+  return { status: "success", start: start, end: end, totalSize: fileSize, base64Chunk: Utilities.base64Encode(bytes) };
+}
+
 
 function doGet() {
   try {
@@ -106,7 +144,7 @@ function doPost(e) {
   }
 
   // Large project files use resumable Drive sessions, so each request stays small.
-  if (["beginFileUpload", "beginUsefulFileUpload", "uploadFileChunk", "getFileUploadStatus", "cancelFileUpload", "setUsefulFileDownload"].includes(data.action)) {
+  if (["beginFileUpload", "beginUsefulFileUpload", "uploadFileChunk", "getFileUploadStatus", "cancelFileUpload", "setUsefulFileDownload", "getUsefulFileInfo", "getUsefulFileChunk"].includes(data.action)) {
     try {
       if (["beginUsefulFileUpload", "setUsefulFileDownload"].includes(data.action) && !isValidAdminPassword_(data.adminPassword)) {
         return jsonResponse({ status: "error", message: "غير مصرح." });
@@ -586,6 +624,8 @@ function handleDriveUploadRequest_(data) {
   if (data.action === "getFileUploadStatus") return getDriveUploadStatus_(data);
   if (data.action === "cancelFileUpload") return cancelDriveUpload_(data);
   if (data.action === "setUsefulFileDownload") return setUsefulFileDownload_(data);
+  if (data.action === "getUsefulFileInfo") return getUsefulFileInfo_(data);
+  if (data.action === "getUsefulFileChunk") return getUsefulFileChunk_(data);
   throw new Error("Unsupported upload action");
 }
 

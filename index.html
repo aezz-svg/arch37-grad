@@ -703,8 +703,16 @@
         <h3 id="usefulFileReaderTitle" style="margin:0;color:var(--gold);">معاينة الكتاب</h3>
         <button class="btn-close" type="button" onclick="closeUsefulFileReader()" aria-label="إغلاق">&times;</button>
       </div>
-      <div id="usefulFileReaderMessage" style="padding:0.5rem;color:var(--text-muted);font-size:0.85rem;">تصفح الملف من هنا.</div>
-      <iframe id="usefulFileReaderFrame" title="معاينة الملف" src="about:blank" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms" style="width:100%;flex:1;min-height:0;border:1px solid var(--border-subtle);border-radius:10px;background:#171717;"></iframe>
+      <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;padding:0.5rem;border-bottom:1px solid var(--border-subtle);">
+        <button id="usefulPdfPrev" class="btn-top btn-outline" type="button" onclick="turnUsefulPdfPage(-1)" disabled>السابق</button>
+        <span id="usefulPdfPageLabel" style="min-width:100px;text-align:center;color:var(--text-muted);">— / —</span>
+        <button id="usefulPdfNext" class="btn-top btn-outline" type="button" onclick="turnUsefulPdfPage(1)" disabled>التالي</button>
+        <button class="btn-top btn-outline" type="button" onclick="zoomUsefulPdf(-0.15)" aria-label="تصغير">−</button>
+        <button class="btn-top btn-outline" type="button" onclick="zoomUsefulPdf(0.15)" aria-label="تكبير">+</button>
+      </div>
+      <div id="usefulPdfCanvasWrap" style="flex:1;min-height:0;overflow:auto;text-align:center;padding:0.75rem;background:#262626;border:1px solid var(--border-subtle);border-radius:10px;">
+        <canvas id="usefulPdfCanvas" aria-label="صفحة الكتاب"></canvas>
+      </div>
     </div>
   </div>
   <main class="grid" id="studentsGrid"></main>
@@ -1440,6 +1448,11 @@
     let APPS_SCRIPT_URL = getActiveScriptUrl();
     let ADMIN_MASTER_SECRET = localStorage.getItem('arch37_admin_pwd') || "admin37";
     let usefulFiles = [];
+    let usefulPdfDocument = null;
+    let usefulPdfLoadingTask = null;
+    let usefulPdfRangeTransport = null;
+    let usefulPdfCurrentPage = 1;
+    let usefulPdfZoom = 1;
     const DEFAULT_SITE_CONFIG = { universityTitle:'جامعة صنعاء | كلية الهندسة', batchTitle:'قسم الهندسة المعمارية — الدفعة 37', badgeText:'المستوى الخامس معماري (92 مهندساً)', heroTitle:'أرشيف البرمجة المعمارية للدفعة 37', heroDescription:'بوابة التوثيق والاستعراض الشامل لكافة مشاريع التخرج ودراسات البرنامج الفراغي والوظيفي، مرتبة تصاعدياً بحسب الرقم الأكاديمي.', headerSize:16, heroSize:29, descriptionSize:15, photoSize:180, allowRegistration:true, allowProjectEdit:true, allowPasswordChange:true, allowFeedback:true, allowWisdom:true, guestMode:false, maintenanceMode:false, maintenanceMessage:'نعمل على تحسين الموقع. يرجى المحاولة لاحقاً.' };
     function readCachedSiteConfig(){try{return JSON.parse(localStorage.getItem('arch37_site_config')||'{}')||{};}catch{return {};}}
     let siteConfig = { ...DEFAULT_SITE_CONFIG, ...readCachedSiteConfig() };
@@ -2203,19 +2216,102 @@ function renderUsefulFiles() {
     </article>`).join('');
 }
 
-function openUsefulFileReader(fileId) {
+async function openUsefulFileReader(fileId) {
   const file = usefulFiles.find(item => String(item.id) === String(fileId));
   if (!file || !file.id) { alert('تعذر العثور على هذا الملف. حدّث الصفحة وحاول مرة أخرى.'); return; }
   document.getElementById('usefulFileReaderTitle').textContent = file.name || 'معاينة الملف';
-  document.getElementById('usefulFileReaderMessage').textContent = file.downloadAllowed === true ? 'يمكنك تصفح الملف هنا أو تحميله من قائمة الملفات.' : 'هذا الملف متاح للمعاينة فقط.';
-  document.getElementById('usefulFileReaderFrame').src = `https://drive.google.com/file/d/${encodeURIComponent(file.id)}/preview`;
+  document.getElementById('usefulFileReaderMessage').textContent = 'جارٍ تجهيز صفحات الكتاب...';
+  document.getElementById('usefulPdfCanvas').width = 0;
+  document.getElementById('usefulPdfCanvas').height = 0;
+  document.getElementById('usefulPdfPageLabel').textContent = '— / —';
+  document.getElementById('usefulPdfPrev').disabled = true;
+  document.getElementById('usefulPdfNext').disabled = true;
+  usefulPdfDocument = null;
+  usefulPdfCurrentPage = 1;
+  usefulPdfZoom = 1;
   openModal('usefulFileReaderModal');
+  try {
+    if (usefulPdfLoadingTask) await usefulPdfLoadingTask.destroy();
+    const info = await sendPostToCloud({ action: 'getUsefulFileInfo', fileId: file.id });
+    if (info?.status !== 'success') throw new Error(info?.message || 'تعذر قراءة معلومات الملف.');
+    if (info.mimeType !== 'application/pdf' && !String(file.name || '').toLowerCase().endsWith('.pdf')) {
+      throw new Error('المعاينة داخل الموقع متاحة لملفات PDF فقط.');
+    }
+    const pdfjs = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs');
+    pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
+    const rangeTransport = new pdfjs.PDFDataRangeTransport(Number(info.size), new Uint8Array(0), false, info.name || file.name);
+    usefulPdfRangeTransport = rangeTransport;
+    rangeTransport.requestDataRange = async (begin, end) => {
+      try {
+        const response = await sendPostToCloud({ action: 'getUsefulFileChunk', fileId: file.id, start: begin, end });
+        if (response?.status !== 'success' || !response.base64Chunk) throw new Error(response?.message || 'تعذر تحميل جزء من الكتاب.');
+        const binary = atob(response.base64Chunk);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        rangeTransport.onDataRange(begin, bytes);
+      } catch (error) {
+        document.getElementById('usefulFileReaderMessage').textContent = safeUserErrorMessage(error, 'تعذر جلب صفحات الكتاب.');
+        if (usefulPdfLoadingTask) usefulPdfLoadingTask.destroy().catch(() => {});
+      }
+    };
+    usefulPdfLoadingTask = pdfjs.getDocument({
+      range: rangeTransport,
+      length: Number(info.size),
+      rangeChunkSize: 512 * 1024,
+      disableAutoFetch: true,
+      disableStream: true
+    });
+    usefulPdfDocument = await usefulPdfLoadingTask.promise;
+    document.getElementById('usefulFileReaderMessage').textContent = file.downloadAllowed === true
+      ? 'تصفح صفحات الكتاب من هنا. يتاح التنزيل حسب إعداد المدير.'
+      : 'تصفح صفحات الكتاب من هنا. التنزيل غير متاح لهذا الملف.';
+    await renderUsefulPdfPage();
+  } catch (error) {
+    document.getElementById('usefulFileReaderMessage').textContent = safeUserErrorMessage(error, 'تعذرت معاينة الملف.');
+  }
 }
 
-function closeUsefulFileReader() {
+async function renderUsefulPdfPage() {
+  if (!usefulPdfDocument) return;
+  const page = await usefulPdfDocument.getPage(usefulPdfCurrentPage);
+  const canvas = document.getElementById('usefulPdfCanvas');
+  const wrap = document.getElementById('usefulPdfCanvasWrap');
+  const baseViewport = page.getViewport({ scale: 1 });
+  const fitScale = Math.min(1.6, Math.max(0.3, (wrap.clientWidth - 32) / baseViewport.width));
+  const viewport = page.getViewport({ scale: fitScale * usefulPdfZoom });
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  const context = canvas.getContext('2d', { alpha: false });
+  canvas.width = Math.ceil(viewport.width * pixelRatio);
+  canvas.height = Math.ceil(viewport.height * pixelRatio);
+  canvas.style.width = `${Math.ceil(viewport.width)}px`;
+  canvas.style.height = `${Math.ceil(viewport.height)}px`;
+  await page.render({ canvasContext: context, viewport, transform: pixelRatio === 1 ? null : [pixelRatio, 0, 0, pixelRatio, 0, 0] }).promise;
+  document.getElementById('usefulPdfPageLabel').textContent = `${usefulPdfCurrentPage} / ${usefulPdfDocument.numPages}`;
+  document.getElementById('usefulPdfPrev').disabled = usefulPdfCurrentPage <= 1;
+  document.getElementById('usefulPdfNext').disabled = usefulPdfCurrentPage >= usefulPdfDocument.numPages;
+}
+
+async function turnUsefulPdfPage(step) {
+  if (!usefulPdfDocument) return;
+  usefulPdfCurrentPage = Math.max(1, Math.min(usefulPdfDocument.numPages, usefulPdfCurrentPage + step));
+  await renderUsefulPdfPage();
+}
+
+async function zoomUsefulPdf(step) {
+  if (!usefulPdfDocument) return;
+  usefulPdfZoom = Math.max(0.5, Math.min(2.5, usefulPdfZoom + step));
+  await renderUsefulPdfPage();
+}
+
+async function closeUsefulFileReader() {
   closeModal('usefulFileReaderModal');
-  const frame = document.getElementById('usefulFileReaderFrame');
-  if (frame) frame.src = 'about:blank';
+  const task = usefulPdfLoadingTask;
+  usefulPdfDocument = null;
+  usefulPdfLoadingTask = null;
+  usefulPdfRangeTransport = null;
+  if (task) { try { await task.destroy(); } catch (_) {} }
+  const canvas = document.getElementById('usefulPdfCanvas');
+  if (canvas) { canvas.width = 0; canvas.height = 0; }
 }
 
 function downloadUsefulFile(fileId) {
